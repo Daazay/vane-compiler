@@ -1,0 +1,9 @@
+# Dirs
+/output
+
+# VS relative
+.vs
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
