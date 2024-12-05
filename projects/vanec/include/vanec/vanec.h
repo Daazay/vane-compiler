@@ -9,5 +9,6 @@
 
 #include "vanec/frontend/lexer/token.h"
 #include "vanec/frontend/lexer/lexer.h"
+#include "vanec/frontend/lexer/token_stream.h"
 
 #include "vanec/build/build_options.h"

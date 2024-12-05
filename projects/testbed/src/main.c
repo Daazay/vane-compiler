@@ -31,23 +31,23 @@ int main(int argc, char** argv) {
 
         Lexer lexer = lexer_create(&stream, MIN_STREAM_CHUNK_CAPACITY);
 
-        Token token = { 0 };
-        do {
-            token_free(&token);
+        TokenStream ts = token_stream_create(&lexer);
 
-            token = lexer_parse_next_token(&lexer);
+        while (!ts.done) {
+            const Token* token = token_stream_get_next(&ts);
+
             if (options.print_tokens) {
                 printf("%s(%ld,%ld): %s - %s \n",
-                    token.loc.filepath,
-                    token.loc.start.row,
-                    token.loc.start.col,
-                    get_token_kind_spelling(token.kind),
-                    token.value
+                    token->loc.filepath,
+                    token->loc.start.row,
+                    token->loc.start.col,
+                    get_token_kind_spelling(token->kind),
+                    token->value
                 );
             }
+        }
 
-        } while (token.kind != TOKEN_END_OF_FILE);
-
+        token_stream_free(&ts);
         lexer_free(&lexer);
         stream_free(&stream);
     } break;
