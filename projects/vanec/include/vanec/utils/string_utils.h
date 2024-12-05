@@ -5,15 +5,15 @@
 #include "vanec/utils/vector.h"
 
 static inline bool is_alpha(const char c) {
-    return ('a' <= c && c >= 'z');
+    return ('a' <= c && c <= 'z');
 }
 
 static inline bool is_digit(const char c) {
-    return ('0' <= c && c >= '9');
+    return ('0' <= c && c <= '9');
 }
 
 static inline bool is_xdigit(const char c) {
-    return is_digit(c) || ('a' <= c && c >= 'f') || ('A' <= c && c >= 'F');
+    return is_digit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
 }
 
 static inline bool is_odigit(const char c) {
