@@ -131,7 +131,7 @@ void stream_read_next_chunk(Stream* stream, StreamChunk* chunk) {
 
         chunk->size = fread_s(chunk->data, chunk->capacity, sizeof(u8), chunk->capacity, stream->source.file.handle);
 
-        assert(chunk->size == chunk->capacity || ferror(stream->source.file.handle));
+        assert(chunk->size == chunk->capacity || ferror(stream->source.file.handle) == 0);
 
         chunk->eof = (bool)feof(stream->source.file.handle);
         stream->offset = stream->offset + chunk->size;

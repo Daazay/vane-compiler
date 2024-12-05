@@ -1,0 +1,108 @@
+#ifndef TOKEN
+#define TOKEN(ID, NAME, VALUE)
+#endif
+
+#ifndef MISC_TOKEN
+#define MISC_TOKEN(ID, NAME) TOKEN(ID, NAME, NULL)
+#endif
+
+#ifndef PUNCT_TOKEN
+#define PUNCT_TOKEN(ID, NAME, VALUE) TOKEN(ID, NAME, VALUE)
+#endif
+
+#ifndef LITERAL_TOKEN
+#define LITERAL_TOKEN(ID, NAME) TOKEN(ID##_LITERAL, NAME, NULL)
+#endif
+
+#ifndef KEYWORD_TOKEN
+#define KEYWORD_TOKEN(ID, NAME) TOKEN(ID##_KEYWORD, NAME, NAME)
+#endif
+
+#ifndef BUILTIN_TOKEN
+#define BUILTIN_TOKEN(ID, NAME) TOKEN(ID##_BUILTIN, NAME, NAME)
+#endif
+
+MISC_TOKEN(UNKNOWN,                   "unknown")
+MISC_TOKEN(INVALID,                   "invalid")
+MISC_TOKEN(IDENTIFIER,                "identifier")
+
+PUNCT_TOKEN(L_BRACE,                  "l_brace",                  "(")
+PUNCT_TOKEN(R_BRACE,                  "r_brace",                  ")")
+PUNCT_TOKEN(COMMA,                    "comma",                    ",")
+PUNCT_TOKEN(QUESTION,                 "question",                 "?")
+PUNCT_TOKEN(SEMICOLON,                "semicolon",                ";")
+PUNCT_TOKEN(COLON,                    "colon",                    ":")
+PUNCT_TOKEN(PLUS,                     "plus",                     "+")
+PUNCT_TOKEN(PLUS_PLUS,                "plus_plus",                "++")
+PUNCT_TOKEN(PLUS_EQUAL,               "plus_equal",               "+=")
+PUNCT_TOKEN(MINUS,                    "minus",                    "-")
+PUNCT_TOKEN(MINUS_MINUS,              "minus_minus",              "--")
+PUNCT_TOKEN(MINUS_EQUAL,              "minus_equal",              "-=")
+PUNCT_TOKEN(STAR,                     "star",                     "*")
+PUNCT_TOKEN(STAR_EQUAL,               "star_equal",               "*=")
+PUNCT_TOKEN(SLASH,                    "slash",                    "/")
+PUNCT_TOKEN(SLASH_EQUAL,              "slash_equal",              "/=")
+PUNCT_TOKEN(PERCENT,                  "percent",                  "%")
+PUNCT_TOKEN(PERCENT_EQUAL,            "percent_equal",            "%=")
+PUNCT_TOKEN(GREATER,                  "greater",                  ">")
+PUNCT_TOKEN(GREATER_GREATER,          "greater_greater",          ">>")
+PUNCT_TOKEN(GREATER_EQUAL,            "greater_equal",            ">=")
+PUNCT_TOKEN(GREATER_GREATER_EQUAL,    "greater_greater_equal",    ">>=")
+PUNCT_TOKEN(LESS,                     "less",                     "<")
+PUNCT_TOKEN(LESS_LESS,                "less_less",                "<<")
+PUNCT_TOKEN(LESS_EQUAL,               "less_equal",               "<=")
+PUNCT_TOKEN(LESS_LESS_EQUAL,          "less_less_equal",          "<<=")
+PUNCT_TOKEN(CARET,                    "caret",                    "^")
+PUNCT_TOKEN(CARET_EQUAL,              "caret_equal",              "^=")
+PUNCT_TOKEN(AMP,                      "amp",                      "&")
+PUNCT_TOKEN(AMP_AMP,                  "amp_amp",                  "&&")
+PUNCT_TOKEN(AMP_EQUAL,                "amp_equal",                "&=")
+PUNCT_TOKEN(PIPE,                     "pipe",                     "|")
+PUNCT_TOKEN(PIPE_PIPE,                "pipe_pipe",                "||")
+PUNCT_TOKEN(PIPE_EQUAL,               "pipe_equal",               "|=")
+PUNCT_TOKEN(TILDE,                    "tilde",                    "~")
+PUNCT_TOKEN(EXCLAIM,                  "exclaim",                  "!")
+PUNCT_TOKEN(EXCLAIM_EQUAL,            "exclaim_equal",            "!=")
+PUNCT_TOKEN(EQUAL,                    "equal",                    "=")
+PUNCT_TOKEN(EQUAL_EQUAL,              "equal_equal",              "==")
+
+LITERAL_TOKEN(STRING,                 "string_literal")
+LITERAL_TOKEN(CHAR,                   "char_literal")
+LITERAL_TOKEN(DEC,                    "dec_literal")
+LITERAL_TOKEN(HEX,                    "hex_literal")
+LITERAL_TOKEN(OCT,                    "oct_literal")
+LITERAL_TOKEN(BITS,                   "bits_literal")
+LITERAL_TOKEN(BOOL,                   "bool_literal")
+
+KEYWORD_TOKEN(FUNCTION,               function)
+KEYWORD_TOKEN(END,                    end)
+KEYWORD_TOKEN(AS,                     as)
+KEYWORD_TOKEN(DIM,                    dim)
+KEYWORD_TOKEN(IF,                     if)
+KEYWORD_TOKEN(THEN,                   then)
+KEYWORD_TOKEN(ELSE,                   else)
+KEYWORD_TOKEN(WHILE,                  while)
+KEYWORD_TOKEN(WEND,                   wend)
+KEYWORD_TOKEN(DO,                     do)
+KEYWORD_TOKEN(LOOP,                   loop)
+KEYWORD_TOKEN(UNTIL,                  until)
+KEYWORD_TOKEN(BREAK,                  break)
+KEYWORD_TOKEN(CONTINUE,               continue)
+
+BUILTIN_TOKEN(BOOL,                   bool)
+BUILTIN_TOKEN(BYTE,                   byte)
+BUILTIN_TOKEN(INT,                    int)
+BUILTIN_TOKEN(UINT,                   uint)
+BUILTIN_TOKEN(LONG,                   long)
+BUILTIN_TOKEN(ULONG,                  ulong)
+BUILTIN_TOKEN(CHAR,                   char)
+BUILTIN_TOKEN(STRING,                 string)
+
+MISC_TOKEN(END_OF_FILE,               eof)
+
+#undef TOKEN
+#undef MISC_TOKEN
+#undef PUNCT_TOKEN
+#undef LITERAL_TOKEN
+#undef KEYWORD_TOKEN
+#undef BUILTIN_TOKEN
