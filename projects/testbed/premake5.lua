@@ -21,3 +21,9 @@ project "testbed"
     links {
         "vanec"
     }
+    -- 
+    debugargs { 
+        "--print_tokens",
+        "lex",
+        ("\"" .. EXAMPLES_DIR_PATH .. "tokens.vn" .. "\"")
+    }

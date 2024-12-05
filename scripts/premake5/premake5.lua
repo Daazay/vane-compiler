@@ -10,6 +10,7 @@ DEPENDENCIES_DIR_PATH   = WORK_DIR_REL_PATH("dependencies")
 OUTPUT_DIR_PATH         = WORK_DIR_REL_PATH("output")
 OUTPUT_BIN_DIR_PATH     = (OUTPUT_DIR_PATH .. "bin/%{cfg.buildcfg}-%{cfg.platform}/%{prj.name}")
 OUTPUT_OBJ_DIR_PATH     = (OUTPUT_DIR_PATH .. "obj/%{cfg.buildcfg}-%{cfg.platform}/%{prj.name}")
+EXAMPLES_DIR_PATH       = WORK_DIR_REL_PATH("examples")
 
 -- includes
 include("workspace.lua")

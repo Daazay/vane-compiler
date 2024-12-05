@@ -63,7 +63,7 @@ void stream_free(Stream* stream) {
     }
 }
 
-void stream_set_source(Stream* stream, const char* str) {
+bool stream_set_source(Stream* stream, const char* str) {
     assert(stream != NULL);
     assert(stream->kind != STREAM_UNKNOWN);
 
@@ -79,7 +79,10 @@ void stream_set_source(Stream* stream, const char* str) {
         stream->source.file.handle = NULL;
         i32 res = fopen_s(&stream->source.file.handle, str, "rb");
 
-        assert(res == 0 && stream->source.file.handle != NULL);
+        if (res != 0 || stream->source.file.handle == NULL) {
+            return false;
+        }
+        //assert(res == 0 && stream->source.file.handle != NULL);
 
         fseek(stream->source.file.handle, 0, SEEK_END);
         stream->size = ftell(stream->source.file.handle);
@@ -87,6 +90,7 @@ void stream_set_source(Stream* stream, const char* str) {
 
         stream->source.file.filepath = str;
     }
+    return true;
 }
 
 void stream_rewind(Stream* stream) {

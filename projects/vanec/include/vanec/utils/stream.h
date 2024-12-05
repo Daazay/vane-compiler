@@ -47,7 +47,7 @@ void stream_free(Stream* stream);
   STRING_STREAM:  str => source.string
   FILE_STREAM:    str => source.file.filepath
 */
-void stream_set_source(Stream* stream, const char* str);
+bool stream_set_source(Stream* stream, const char* str);
 
 void stream_rewind(Stream* stream);
 
