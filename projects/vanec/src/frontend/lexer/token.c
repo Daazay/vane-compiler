@@ -3,22 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-const char* get_token_kind_spelling(const TokenKind kind) {
-	switch (kind) {
-#define TOKEN(ID, NAME, VALUE) case TOKEN_##ID: return #NAME;
-#include "vanec/frontend/lexer/token_kind.def"
-	};
-	return NULL;
-}
-
-const char* get_token_kind_value(const TokenKind kind) {
-	switch (kind) {
-#define TOKEN(ID, NAME, VALUE) case TOKEN_##ID: return #VALUE;
-#include "vanec/frontend/lexer/token_kind.def"
-	};
-	return NULL;
-}
-
 Token token_create(const TokenKind kind, char* value, const SourceLoc loc) {
 	return (Token) {
 		.kind = kind,
