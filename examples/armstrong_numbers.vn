@@ -1,0 +1,58 @@
+function count_digits(num as int) as int
+    dim count as int
+    count = 0;
+
+    while (num != 0)
+        num /= 10;
+        ++count;
+    wend
+
+    return(count);
+end function
+
+function power(base as int, exp as int) as int
+    dim result, i as int
+    i = 0;
+
+    while (i < exp)
+        result *= base;
+        ++i;
+    wend
+
+    return(result);
+end function
+
+function is_armstrong(num as int) as int
+    dim orig_num, n, result as int
+    orig_num = num;
+    n = count_digits(num);
+    result = 0;
+
+    while (num != 0)
+        dim remainder as int
+        remainder = num % 10;
+        result += power(remainder, n);
+        num /= 10;
+    wend
+
+    return(result == orig_num);
+end function
+
+function main(args as string()) as int
+    dim low, high as int
+    low = 100;
+    high = 500;
+
+    printf("Armstrong numbers between %d and %d are: ", low, high);
+
+    dim i as int
+    i = low + 1;
+
+    while (i < high)
+        if (is_armstrong(i)) then
+            printf("%d ", i);
+        end if
+
+        ++i;
+    wend
+end function
