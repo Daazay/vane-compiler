@@ -7,9 +7,9 @@
 typedef struct TokenStreamIterator TokenStreamIterator;
 
 struct TokenStreamIterator {
+    Token token;
     TokenStreamIterator* prev;
     TokenStreamIterator* next;
-    Token token;
 };
 
 typedef struct {

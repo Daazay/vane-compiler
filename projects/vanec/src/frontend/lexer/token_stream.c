@@ -55,19 +55,8 @@ const Token* token_stream_get_curr(TokenStream* ts) {
     return NULL;
 }
 
-const Token* token_stream_peek_next(TokenStream* ts) {
+static inline TokenStreamIterator* token_stream_parse_next_token(TokenStream* ts) {
     assert(ts != NULL);
-
-    if (ts->next != NULL) {
-        ts->curr = ts->next;
-        ts->next = ts->next->next;
-
-        return &ts->curr->token;
-    }
-
-    if (ts->done) {
-        return &ts->curr->token;
-    }
 
     Token token = lexer_parse_next_token(ts->lexer);
     ++ts->count;
@@ -78,15 +67,30 @@ const Token* token_stream_peek_next(TokenStream* ts) {
         ts->done = true;
     }
 
+    return it;
+}
+
+const Token* token_stream_peek_next(TokenStream* ts) {
+    assert(ts != NULL);
+
     if (ts->head == NULL) {
-        ts->head = it;
+        ts->head = ts->next = token_stream_parse_next_token(ts);
+        return &ts->head->token;
+    }
+    if (ts->curr == NULL) {
+        return &ts->head->token;
+    }
+    if (ts->next == NULL) {
+        if (ts->done) {
+            return &ts->curr->token;
+        }
+        ts->next = token_stream_parse_next_token(ts);
+        ts->curr->next = ts->next;
+
+        return &ts->next->token;
     }
 
-    if (ts->curr != NULL) {
-        ts->curr->next = it;
-    }
-
-    return &it->token;
+    return &ts->next->token;
 }
 
 const Token* token_stream_get_next(TokenStream* ts) {
@@ -94,6 +98,7 @@ const Token* token_stream_get_next(TokenStream* ts) {
 
     const Token* token = token_stream_peek_next(ts);
     ts->curr = ts->next;
+    ts->next = ts->curr->next;
 
     return token;
 }
@@ -101,12 +106,12 @@ const Token* token_stream_get_next(TokenStream* ts) {
 void token_stream_move_forward(TokenStream* ts) {
     assert(ts != NULL);
 
-    if (ts->next != NULL) {
-        ts->curr = ts->next;
-        ts->next = ts->curr->next;
+    if (ts->next == NULL) {
+        token_stream_get_next(ts);
     }
     else {
-        token_stream_get_next(ts);
+        ts->curr = ts->next;
+        ts->next = ts->curr->next;
     }
 }
 
