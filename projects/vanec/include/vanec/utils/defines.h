@@ -29,3 +29,8 @@ static_assert(sizeof(i64) == 8, "expected 8 bytes");
 
 #define KB ((u64)1024)
 #define MB ((u64)(KB * 1024))
+
+#define MAX_STREAM_CHUNK_CAPACITY 1 * KB
+#define MIN_STREAM_CHUNK_CAPACITY 8
+
+#define DEFAULT_VECTOR_CAPACITY 8

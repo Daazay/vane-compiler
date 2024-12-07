@@ -2,8 +2,6 @@
 
 #include "vanec/utils/defines.h"
 
-#define DEFAULT_VECTOR_CAPACITY 8
-
 typedef struct {
     void* items;
     void (*free)(void*);

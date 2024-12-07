@@ -4,9 +4,6 @@
 
 #include "vanec/utils/defines.h"
 
-#define MAX_STREAM_CHUNK_CAPACITY 1 * KB
-#define MIN_STREAM_CHUNK_CAPACITY 8
-
 typedef enum {
     STREAM_UNKNOWN= 0,
     STREAM_STRING,

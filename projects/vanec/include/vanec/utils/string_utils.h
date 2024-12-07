@@ -5,7 +5,7 @@
 #include "vanec/utils/vector.h"
 
 static inline bool is_alpha(const char c) {
-    return ('a' <= c && c <= 'z');
+    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
 }
 
 static inline bool is_digit(const char c) {
@@ -38,10 +38,10 @@ static inline bool is_space(const char c) {
 
 static inline bool is_punct(const char c) {
     return
-        ('!' <= c && c <= '/') ||
-        (':' <= c && c <= '@') ||
-        ('[' <= c && c <= '`') ||
-        ('{' <= c && c <= '~');
+        ('!' <= c && c <= '/') ||   // !"#$%&'()*+,-./
+        (':' <= c && c <= '@') ||   // :;<=>?@
+        ('[' <= c && c <= '`') ||   // [\]^_`
+        ('{' <= c && c <= '~');     // {|}~
 }
 
 char* str_dup(const char* s);
