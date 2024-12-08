@@ -761,3 +761,27 @@ void write_ast_node_to_dot_file(FILE* file, const char* prev_node_name, const AS
 
     str_free(node_name);
 }
+
+bool write_ast_dot_file(const char* filepath, const Vector* functions) {
+    assert(filepath != NULL);
+
+    FILE* file = NULL;
+    i32 status = fopen_s(&file, filepath, "wb");
+    if (status != 0 || file == NULL) {
+        printf("Error: failed to open file \"%s\".\n", filepath);
+        return false;
+    }
+
+    write_dot_header(file);
+    for (u64 i = 0; i < functions->items_count; ++i) {
+        const ASTNode* node = vector_get_ref(functions, i);
+        write_ast_node_to_dot_file(file, NULL, node);
+    }
+    putc('}', file);
+
+    fclose(file);
+
+    printf("Saved AST graph to \"%s\".\n", filepath);
+
+    return true;
+}
