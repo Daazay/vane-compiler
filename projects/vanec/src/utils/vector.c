@@ -50,6 +50,19 @@ void vector_free(Vector* vector) {
     vector->is_ptr = false;
 }
 
+void vector_clear(Vector* vector) {
+    assert(vector != NULL);
+
+    if (vector->free != NULL) {
+        for (u64 i = 0; i < vector->items_count; ++i) {
+            vector->free(vector_get_ref(vector, i));
+        }
+    }
+
+    vector->items_count = 0;
+}
+
+
 void vector_push_back(Vector* vector, const void* item) {
     assert(vector != NULL);
     assert(item != NULL);

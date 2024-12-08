@@ -15,6 +15,8 @@ Vector vector_create(const u64 capacity, const u64 item_size, const void(*free)(
 
 void vector_free(Vector* vector);
 
+void vector_clear(Vector* vector);
+
 void vector_push_back(Vector* vector, const void* item);
 
 void vector_push_front(Vector* vector, const void* item);
