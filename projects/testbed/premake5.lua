@@ -23,7 +23,10 @@ project "testbed"
     }
     -- 
     debugargs { 
-        "--print_tokens",
-        "lex",
-        ("\"" .. EXAMPLES_DIR_PATH .. "tokens.vn" .. "\"")
+        "--chunk_cap",
+        "32",
+        "ast",
+        ("\"" .. EXAMPLES_DIR_PATH .. "armstrong_numbers.vn" .. "\""),
+        ("\"" .. EXAMPLES_DIR_PATH .. "fizz_buzz.vn" .. "\""),
+        ("\"" .. EXAMPLES_DIR_PATH .. "gcd.vn" .. "\"")
     }
