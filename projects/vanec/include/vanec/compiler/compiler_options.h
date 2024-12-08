@@ -15,8 +15,8 @@ typedef enum {
 
 typedef struct {
     Vector files;
-    const char* working_dir;
-    const char* output_dir;
+    char* working_dir;
+    char* output_dir;
     u64 stream_chunk_capacity;
 
     u64 flags;
@@ -25,6 +25,6 @@ typedef struct {
 
 void compiler_options_init(CompilerOptions* options);
 
-bool compiler_options_parse_args(CompilerOptions* options, int argc, char** argv);
+void compiler_options_parse_args(CompilerOptions* options, int argc, char** argv);
 
 void compiler_options_free(CompilerOptions* options);

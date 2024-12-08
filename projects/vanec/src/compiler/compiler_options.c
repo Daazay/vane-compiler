@@ -30,7 +30,6 @@ typedef struct {
 } ArgParserContext;
 
 #define PRINT(msg, ...) printf(msg "\n", ##__VA_ARGS__)
-#define PRINT_ERR(msg, ...) printf("Error: " msg "\n", ##__VA_ARGS__)
 
 static void print_usage(const char* path) {
     PRINT("Usage: %s [options] command [arguments]", path);
@@ -68,71 +67,66 @@ static inline bool is_next_opt(ArgParserContext* ctx) {
     return is_option(ctx->args[ctx->arg_index + 1]);
 }
 
-static inline bool parse_option(ArgParserContext* ctx) {
+static inline void parse_option(ArgParserContext* ctx) {
     if (is_long_option(ctx->current_arg)) {
         const char* opt = ctx->current_arg + 2;
 
         if (match_arg(opt, "output_dir")) {
-            if (is_next_opt(ctx)) {
-                PRINT_ERR("The argument for the \"output_dir\" option was not provided.");
-                return false;
+            if (!has_next(ctx) || is_next_opt(ctx)) {
+                error_exit_with_msg(-1, "The argument for the \"output_dir\" option was not provided");
             }
+
             ctx->options->output_dir = str_dup(ctx->args[++ctx->arg_index]);
-            return true;
+            return;
         }
         else if (match_arg(opt, "chunk_cap")) {
-            if (is_next_opt(ctx)) {
-                PRINT_ERR("The argument for the \"chunk_cap\" option was not provided.");
-                return false;
+            if (!has_next(ctx) || is_next_opt(ctx)) {
+                error_exit_with_msg(-1, "The argument for the \"chunk_cap\" option was not provided");
             }
+
             const char* number = ctx->args[++ctx->arg_index];
             u64 cap = atoi(number);
 
             ctx->options->stream_chunk_capacity = cap;
-
-            return true;
+            return;
         }
     }
-    PRINT_ERR("Unknown option \"%s\".", ctx->current_arg);
-    return false;
+    error_exit_with_msg(-1, "Unknown option \"%s\".", ctx->current_arg);
 }
 
 static inline void append_arg_files(ArgParserContext* ctx, Vector* vector) {
     while (has_next(ctx) && !is_next_opt(ctx)) {
-        const char* arg = str_dup(ctx->args[++ctx->arg_index]);
+        char* arg = str_dup(ctx->args[++ctx->arg_index]);
         vector_push_back(vector, &arg);
     }
 }
 
-static inline bool parse_command(ArgParserContext* ctx) {
+static inline void parse_command(ArgParserContext* ctx) {
     if (match_arg(ctx->current_arg, "lex")) {
         ctx->options->command = COMPILER_COMMAND_LEX_ONLY;
 
         append_arg_files(ctx, &ctx->options->files);
         if (ctx->options->files.items_count == 0) {
-            PRINT_ERR("The \"lex\" command need at least one file.");
-            return false;
+            error_exit_with_msg(-1, "The \"lex\" command need at least one file.");
         }
-        return true;
+        return;
     }
     if (match_arg(ctx->current_arg, "ast")) {
         ctx->options->command = COMPILER_COMMAND_PARSE_AST_ONLY;
 
         append_arg_files(ctx, &ctx->options->files);
         if (ctx->options->files.items_count == 0) {
-            PRINT_ERR("The \"ast\" command need at least one file.");
-            return false;
+            error_exit_with_msg(-1, "The \"ast\" command need at least one file.");
         }
-        return true;
+        return;
     }
-    PRINT_ERR("Unknown command \"%s\".", ctx->current_arg);
-    return false;
+    error_exit_with_msg(-1, "Unknown command \"%s\".", ctx->current_arg);
 }
 
-bool compiler_options_parse_args(CompilerOptions* options, int argc, char** argv) {
+void compiler_options_parse_args(CompilerOptions* options, int argc, char** argv) {
     if (argc < 2) {
         print_usage(argv[0]);
-        return false;
+        error_exit(-1);
     }
 
     ArgParserContext ctx = {
@@ -147,28 +141,19 @@ bool compiler_options_parse_args(CompilerOptions* options, int argc, char** argv
         ctx.current_arg = ctx.args[ctx.arg_index];
 
         if (is_option(ctx.current_arg)) {
-            if (!parse_option(&ctx)) {
-                return false;
-            }
+            parse_option(&ctx);
             continue;
         }
         if (options->command == COMPILER_COMMAND_UNDEFINED) {
-            if (!parse_command(&ctx)) {
-                return false;
-            }
+            parse_command(&ctx);
             continue;
         }
-
-        PRINT_ERR("Found an unexpected argument \"%s\".\n", ctx.current_arg);
-        return false;
+        error_exit_with_msg(-1, "Found an unexpected argument \"%s\".\n", ctx.current_arg);
     }
 
     if (ctx.options->command == COMPILER_COMMAND_UNDEFINED) {
-        PRINT_ERR("The command is not specified.\n");
-        return false;
+        error_exit_with_msg(-1, "The command is not specified.\n");
     }
-
-    return true;
 }
 
 void compiler_options_free(CompilerOptions* options) {

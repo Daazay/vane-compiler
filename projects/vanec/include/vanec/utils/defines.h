@@ -34,3 +34,7 @@ static_assert(sizeof(i64) == 8, "expected 8 bytes");
 #define MIN_STREAM_CHUNK_CAPACITY 8
 
 #define DEFAULT_VECTOR_CAPACITY 8
+
+void error_exit(i32 code);
+
+void error_exit_with_msg(i32 code, const char* msg, ...);
