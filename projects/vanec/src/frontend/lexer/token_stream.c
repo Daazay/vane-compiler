@@ -46,16 +46,7 @@ void token_stream_free(TokenStream* ts) {
     token_stream_iterator_free(ts->head);
 }
 
-const Token* token_stream_get_curr(TokenStream* ts) {
-    assert(ts != NULL);
-
-    if (ts->curr != NULL) {
-        return &ts->curr->token;
-    }
-    return NULL;
-}
-
-static inline TokenStreamIterator* token_stream_parse_next_token(TokenStream* ts) {
+static inline TokenStreamIterator* token_stream_parse_next(TokenStream* ts) {
     assert(ts != NULL);
 
     Token token = lexer_parse_next_token(ts->lexer);
@@ -74,45 +65,30 @@ const Token* token_stream_peek_next(TokenStream* ts) {
     assert(ts != NULL);
 
     if (ts->head == NULL) {
-        ts->head = ts->next = token_stream_parse_next_token(ts);
+        ts->head = ts->next = token_stream_parse_next(ts);
         return &ts->head->token;
     }
     if (ts->curr == NULL) {
-        return &ts->head->token;
+        return &ts->next->token;
     }
     if (ts->next == NULL) {
         if (ts->done) {
             return &ts->curr->token;
         }
-        ts->next = token_stream_parse_next_token(ts);
-        ts->curr->next = ts->next;
-
-        return &ts->next->token;
+        ts->curr->next = ts->next = token_stream_parse_next(ts);   
     }
 
-    return &ts->next->token;
+    return&ts->next->token;
 }
 
-const Token* token_stream_get_next(TokenStream* ts) {
-    assert(ts != NULL);
-
-    const Token* token = token_stream_peek_next(ts);
-    ts->curr = ts->next;
-    ts->next = ts->curr->next;
-
-    return token;
-}
-
-void token_stream_move_forward(TokenStream* ts) {
+const Token* token_stream_consume(TokenStream* ts) {
     assert(ts != NULL);
 
     if (ts->next == NULL) {
-        token_stream_get_next(ts);
+        token_stream_peek_next(ts);
     }
-    else {
-        ts->curr = ts->next;
-        ts->next = ts->curr->next;
-    }
+    ts->curr = ts->next;
+    ts->next = ts->curr->next;
 }
 
 void token_stream_move_back(TokenStream* ts) {
