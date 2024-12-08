@@ -47,6 +47,12 @@ void lexer_rewind(Lexer* lexer) {
 
     stream_rewind(lexer->stream);
 
+    lexer->chunk_pos = 0;
+    lexer->chunk.eof = false;
+    lexer->chunk.size = 0;
+
+    lexer->loc.filepath = lexer->stream->source.file.filepath;
+
     lexer->loc.start.pos = 0;
     lexer->loc.start.row = DEFAULT_ROW_INDEX;
     lexer->loc.start.col = DEFAULT_COL_INDEX;
@@ -59,7 +65,7 @@ void lexer_rewind(Lexer* lexer) {
 static char get_curr_char_from_stream(Lexer* lexer) {
     assert(lexer != NULL);
 
-    if (lexer->chunk_pos == lexer->chunk.size) {
+    if (lexer->chunk_pos >= lexer->chunk.size) {
         if (lexer->chunk.eof) {
             return '\0';
         }
@@ -363,7 +369,6 @@ Token lexer_parse_string_literal(Lexer* lexer) {
     }
 
     char* value = string_builder_get_str(&sb);
-    u64 len = sb.buffer.items_count;
     string_builder_free(&sb);
 
     if (!is_good) {
