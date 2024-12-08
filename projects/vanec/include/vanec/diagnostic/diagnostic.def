@@ -1,0 +1,16 @@
+#ifndef DIAG
+#define DIAG(ID, TYPE, LEVEL, MSG)
+#endif
+
+DIAG(ERR_UNTERMINATED_COMMENT_BLOCK, syntax, error, "unterminated multi-line comment")
+DIAG(ERR_UNTERMINATED_CHAR_LITERAL, syntax, error, "unterminated char literal")
+DIAG(ERR_UNTERMINATED_STRING_LITERAL, syntax, error, "unterminated string literal")
+DIAG(ERR_CHAR_LITERAL_HAS_NO_BODY, syntax, error, "char literal must contain at least one character")
+DIAG(ERR_LITERAL_HAS_NO_BODY, syntax, error, "literal has no body")
+DIAG(ERR_CHAR_LITERAL_HAS_TOO_MANY_CHARACTERS, syntax, error, "char literal '%s' has to many characters")
+DIAG(ERR_INVALID_CHARACTERS_IN_LITERAL, syntax, error, "literal '%s' contains invalid character(s)")
+DIAG(ERR_UNKNOWN_CHARACTER, syntax, error, "unknown character '%s'")
+
+DIAG(ERR_EXPECT_TOKEN_KIND_OF, semantic, error, "expected %s, but received %s")
+
+#undef DIAG
