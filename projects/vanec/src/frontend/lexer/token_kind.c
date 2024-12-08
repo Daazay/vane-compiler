@@ -2,7 +2,7 @@
 
 const char* get_token_kind_spelling(const TokenKind kind) {
 	switch (kind) {
-#define TOKEN(ID, NAME, VALUE) case TOKEN_##ID: return #NAME;
+#define TOKEN(ID, NAME, VALUE) case TOKEN_##ID: return NAME;
 #include "vanec/frontend/lexer/token_kind.def"
 	};
 	return NULL;
@@ -10,10 +10,137 @@ const char* get_token_kind_spelling(const TokenKind kind) {
 
 const char* get_token_kind_value(const TokenKind kind) {
 	switch (kind) {
-#define TOKEN(ID, NAME, VALUE) case TOKEN_##ID: return #VALUE;
+#define TOKEN(ID, NAME, VALUE) case TOKEN_##ID: return VALUE;
 #include "vanec/frontend/lexer/token_kind.def"
 	};
 	return NULL;
+}
+
+bool is_token_kind_a_punctuator(const TokenKind kind) {
+    return
+        kind == TOKEN_L_BRACE ||
+        kind == TOKEN_R_BRACE ||
+        kind == TOKEN_COMMA ||
+        kind == TOKEN_SEMICOLON ||
+        kind == TOKEN_PLUS ||
+        kind == TOKEN_PLUS_PLUS ||
+        kind == TOKEN_PLUS_EQUAL ||
+        kind == TOKEN_MINUS ||
+        kind == TOKEN_MINUS_MINUS ||
+        kind == TOKEN_MINUS_EQUAL ||
+        kind == TOKEN_STAR ||
+        kind == TOKEN_STAR_EQUAL ||
+        kind == TOKEN_SLASH ||
+        kind == TOKEN_SLASH_EQUAL ||
+        kind == TOKEN_PERCENT ||
+        kind == TOKEN_PERCENT_EQUAL ||
+        kind == TOKEN_GREATER ||
+        kind == TOKEN_GREATER_GREATER ||
+        kind == TOKEN_GREATER_EQUAL ||
+        kind == TOKEN_GREATER_GREATER_EQUAL ||
+        kind == TOKEN_LESS ||
+        kind == TOKEN_LESS_LESS ||
+        kind == TOKEN_LESS_EQUAL ||
+        kind == TOKEN_LESS_LESS_EQUAL ||
+        kind == TOKEN_CARET ||
+        kind == TOKEN_CARET_EQUAL ||
+        kind == TOKEN_AMP ||
+        kind == TOKEN_AMP_AMP ||
+        kind == TOKEN_AMP_EQUAL ||
+        kind == TOKEN_PIPE ||
+        kind == TOKEN_PIPE_PIPE ||
+        kind == TOKEN_PIPE_EQUAL ||
+        kind == TOKEN_TILDE ||
+        kind == TOKEN_EXCLAIM ||
+        kind == TOKEN_EXCLAIM_EQUAL ||
+        kind == TOKEN_EQUAL ||
+        kind == TOKEN_EQUAL_EQUAL;
+}
+
+bool is_token_kind_a_literal(const TokenKind kind) {
+    return
+        kind == TOKEN_STRING_LITERAL ||
+        kind == TOKEN_CHAR_LITERAL ||
+        kind == TOKEN_DEC_LITERAL ||
+        kind == TOKEN_HEX_LITERAL ||
+        kind == TOKEN_OCT_LITERAL ||
+        kind == TOKEN_BITS_LITERAL ||
+        kind == TOKEN_BOOL_LITERAL;
+}
+
+bool is_token_kind_a_keyword(const TokenKind kind) {
+    return
+        kind == TOKEN_FUNCTION_KEYWORD ||
+        kind == TOKEN_END_KEYWORD ||
+        kind == TOKEN_AS_KEYWORD ||
+        kind == TOKEN_DIM_KEYWORD ||
+        kind == TOKEN_IF_KEYWORD ||
+        kind == TOKEN_THEN_KEYWORD ||
+        kind == TOKEN_ELSE_KEYWORD ||
+        kind == TOKEN_WHILE_KEYWORD ||
+        kind == TOKEN_WEND_KEYWORD ||
+        kind == TOKEN_DO_KEYWORD ||
+        kind == TOKEN_LOOP_KEYWORD ||
+        kind == TOKEN_UNTIL_KEYWORD ||
+        kind == TOKEN_BREAK_KEYWORD ||
+        kind == TOKEN_CONTINUE_KEYWORD ||
+        is_token_kind_a_builtin(kind);
+}
+
+bool is_token_kind_a_builtin(const TokenKind kind) {
+    return
+        kind == TOKEN_BOOL_BUILTIN ||
+        kind == TOKEN_BYTE_BUILTIN ||
+        kind == TOKEN_INT_BUILTIN ||
+        kind == TOKEN_UINT_BUILTIN ||
+        kind == TOKEN_LONG_BUILTIN ||
+        kind == TOKEN_ULONG_BUILTIN ||
+        kind == TOKEN_CHAR_BUILTIN ||
+        kind == TOKEN_STRING_BUILTIN;
+}
+
+bool is_token_kind_a_binary_op(const TokenKind kind) {
+    return
+        kind == TOKEN_PLUS ||
+        kind == TOKEN_PLUS_EQUAL ||
+        kind == TOKEN_MINUS ||
+        kind == TOKEN_MINUS_EQUAL ||
+        kind == TOKEN_STAR ||
+        kind == TOKEN_STAR_EQUAL ||
+        kind == TOKEN_SLASH ||
+        kind == TOKEN_SLASH_EQUAL ||
+        kind == TOKEN_PERCENT ||
+        kind == TOKEN_PERCENT_EQUAL ||
+        kind == TOKEN_GREATER ||
+        kind == TOKEN_GREATER_GREATER ||
+        kind == TOKEN_GREATER_EQUAL ||
+        kind == TOKEN_GREATER_GREATER_EQUAL ||
+        kind == TOKEN_LESS ||
+        kind == TOKEN_LESS_LESS ||
+        kind == TOKEN_LESS_EQUAL ||
+        kind == TOKEN_LESS_LESS_EQUAL ||
+        kind == TOKEN_CARET ||
+        kind == TOKEN_CARET_EQUAL ||
+        kind == TOKEN_AMP ||
+        kind == TOKEN_AMP_AMP ||
+        kind == TOKEN_AMP_EQUAL ||
+        kind == TOKEN_PIPE ||
+        kind == TOKEN_PIPE_PIPE ||
+        kind == TOKEN_PIPE_EQUAL ||
+        kind == TOKEN_EXCLAIM_EQUAL ||
+        kind == TOKEN_EQUAL ||
+        kind == TOKEN_EQUAL_EQUAL;
+}
+
+bool is_token_kind_an_unary_op(const TokenKind kind) {
+    return
+        kind == TOKEN_PLUS ||
+        kind == TOKEN_PLUS_PLUS ||
+        kind == TOKEN_MINUS ||
+        kind == TOKEN_MINUS_MINUS ||
+        kind == TOKEN_CARET ||
+        kind == TOKEN_TILDE ||
+        kind == TOKEN_EXCLAIM;
 }
 
 Precedence get_precedence(const TokenKind kind) {

@@ -35,6 +35,18 @@ const char* get_token_kind_spelling(const TokenKind kind);
 
 const char* get_token_kind_value(const TokenKind kind);
 
+bool is_token_kind_a_punctuator(const TokenKind kind);
+
+bool is_token_kind_a_literal(const TokenKind kind);
+
+bool is_token_kind_a_keyword(const TokenKind kind);
+
+bool is_token_kind_a_builtin(const TokenKind kind);
+
+bool is_token_kind_a_binary_op(const TokenKind kind);
+
+bool is_token_kind_an_unary_op(const TokenKind kind);
+
 Precedence get_precedence(const TokenKind kind);
 
 Associativity get_associativity(const Precedence prec);
