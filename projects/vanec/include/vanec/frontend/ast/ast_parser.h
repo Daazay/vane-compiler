@@ -14,7 +14,9 @@ ASTParser ast_parser_create(Lexer* lexer, DiagnosticEngine* diag);
 
 void ast_parser_free(ASTParser* parser);
 
-bool is_ast_parser_done(const ASTParser* parser);
+void ast_parser_clear(ASTParser* parser);
+
+bool is_ast_parser_done(ASTParser* parser);
 
 const Token* ast_parser_expect_next(ASTParser* parser, const bool consume, bool report, const u64 count, const TokenKind expected[]);
 
@@ -58,12 +60,12 @@ ASTNode* ast_parser_parse_ast_braces_expr_node(ASTParser* parser);
 
 ASTNode* ast_parser_parse_ast_lhs_expression_node(ASTParser* parser);
 
-ASTNode* ast_parser_parse_ast_call_or_indexer_expr_node(ASTParser* parser, const ASTNode* callee);
+ASTNode* ast_parser_parse_ast_call_or_indexer_expr_node(ASTParser* parser, ASTNode* callee);
 
-ASTNode* ast_parser_parse_ast_binary_expr_node(ASTParser* parser, const ASTNode* lhs, const Precedence precedence);
+ASTNode* ast_parser_parse_ast_binary_expr_node(ASTParser* parser, ASTNode* lhs, const Precedence precedence);
 
-ASTNode* ast_parser_parse_ast_ternary_expr_node(ASTParser* parser, const ASTNode* expr);
+ASTNode* ast_parser_parse_ast_ternary_expr_node(ASTParser* parser, ASTNode* expr);
 
-ASTNode* ast_parser_parse_ast_rhs_expression_node(ASTParser* parser, const ASTNode* lhs, const Precedence precedence);
+ASTNode* ast_parser_parse_ast_rhs_expression_node(ASTParser* parser, ASTNode* lhs, const Precedence precedence);
 
 ASTNode* ast_parser_parse_ast_expression_node(ASTParser* parser, const Precedence precedence);

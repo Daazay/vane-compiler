@@ -24,7 +24,13 @@ void ast_parser_free(ASTParser* parser) {
     parser->diag = NULL;
 }
 
-bool is_ast_parser_done(const ASTParser* parser) {
+void ast_parser_clear(ASTParser* parser) {
+    assert(parser != NULL);
+
+    token_stream_clear(&parser->ts);
+}
+
+bool is_ast_parser_done(ASTParser* parser) {
     assert(parser != NULL);
 
     return token_stream_peek_next(&parser->ts)->kind == TOKEN_END_OF_FILE;
@@ -86,7 +92,7 @@ const Token* ast_parser_expect_next(ASTParser* parser, const bool consume, bool 
 ast_parser_expect_next(parser, consume, report, (sizeof((TokenKind[]){__VA_ARGS__}) / sizeof(TokenKind)), (TokenKind[]) {__VA_ARGS__})
 
 void ast_parser_skip_to_the_end_of_a_file(ASTParser* parser) {
-    assert(parser);
+    assert(parser != NULL);
 
     while (token_stream_peek_next(&parser->ts)->kind != TOKEN_END_OF_FILE) {
         token_stream_consume(&parser->ts);
@@ -809,7 +815,7 @@ ASTNode* ast_parser_parse_ast_lhs_expression_node(ASTParser* parser) {
     return NULL;
 }
 
-ASTNode* ast_parser_parse_ast_call_or_indexer_expr_node(ASTParser* parser, const ASTNode* callee) {
+ASTNode* ast_parser_parse_ast_call_or_indexer_expr_node(ASTParser* parser, ASTNode* callee) {
     assert(parser != NULL && callee != NULL);
 
     const Token* token = EXPECT_NEXT(true, true, TOKEN_L_BRACE);
@@ -860,7 +866,7 @@ ASTNode* ast_parser_parse_ast_call_or_indexer_expr_node(ASTParser* parser, const
     return call_or_indexer;
 }
 
-ASTNode* ast_parser_parse_ast_binary_expr_node(ASTParser* parser, const ASTNode* lhs, const Precedence precedence) {
+ASTNode* ast_parser_parse_ast_binary_expr_node(ASTParser* parser, ASTNode* lhs, const Precedence precedence) {
     assert(parser != NULL && lhs != NULL);
 
     const Token* token = EXPECT_NEXT(true, true, 
@@ -906,7 +912,7 @@ ASTNode* ast_parser_parse_ast_binary_expr_node(ASTParser* parser, const ASTNode*
     return binary;
 }
 
-ASTNode* ast_parser_parse_ast_ternary_expr_node(ASTParser* parser, const ASTNode* expr) {
+ASTNode* ast_parser_parse_ast_ternary_expr_node(ASTParser* parser, ASTNode* expr) {
     assert(parser != NULL && expr != NULL);
 
     const Token* token = EXPECT_NEXT(true, true, TOKEN_QUESTION);
@@ -949,7 +955,7 @@ ASTNode* ast_parser_parse_ast_ternary_expr_node(ASTParser* parser, const ASTNode
     return ternary;
 }
 
-ASTNode* ast_parser_parse_ast_rhs_expression_node(ASTParser* parser, const ASTNode* lhs, const Precedence precedence) {
+ASTNode* ast_parser_parse_ast_rhs_expression_node(ASTParser* parser, ASTNode* lhs, const Precedence precedence) {
     assert(parser != NULL && lhs != NULL);
 
     const Token* token = token_stream_peek_next(&parser->ts);
@@ -1017,51 +1023,3 @@ ASTNode* ast_parser_parse_ast_expression_stmt_node(ASTParser* parser) {
 
     return stmt;
 }
-
-//Vector ast_parser_parse_functions(ASTParser* parser) {
-//    Vector functions = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(ASTNode*), &ast_node_free, true);
-//
-//    while (token_stream_peek_next(&parser->ts)->kind != TOKEN_END_OF_FILE) {
-//        ASTNode* function = ast_parser_parse_ast_funcdef_node(parser);
-//
-//        if (function != NULL) {
-//            vector_push_back(&functions, &function);
-//        }
-//    }
-//
-//    return functions;
-//}
-//
-
-//
-//
-//ASTNode* ast_parser_parse_ast_break_stmt_node(ASTParser* parser) {
-//    assert(parser != NULL);
-//
-//    const Token* token = EXPECT_NEXT(true, true, TOKEN_BREAK_KEYWORD);
-//    if (token == NULL) {
-//        return NULL;
-//    }
-//
-//    ASTNode* stmt = ast_node_create(AST_BREAK_STMT_NODE);
-//
-//    stmt->loc = token->loc;
-//
-//    return stmt;
-//}
-//
-//
-//ASTNode* ast_parser_parse_ast_continue_stmt_node(ASTParser* parser) {
-//    assert(parser != NULL);
-//
-//    const Token* token = EXPECT_NEXT(true, true, TOKEN_CONTINUE_KEYWORD);
-//    if (token == NULL) {
-//        return NULL;
-//    }
-//
-//    ASTNode* stmt = ast_node_create(AST_CONTINUE_STMT_NODE);
-//
-//    stmt->loc = token->loc;
-//
-//    return stmt;
-//}

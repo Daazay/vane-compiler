@@ -19,8 +19,9 @@ void compiler_lex(CompilerOptions* options) {
     for (u64 i = 0; i < options->files.items_count; ++i) {
         const char* filepath = vector_get_ref(&options->files, i);
         stream_set_source(&fs, filepath);
+        lexer_rewind(&lexer);
 
-        TokenKind kind = 0;
+        TokenKind kind = TOKEN_UNKNOWN;
         do {
             Token token = lexer_parse_next_token(&lexer);
             kind = token.kind;
@@ -33,24 +34,25 @@ void compiler_lex(CompilerOptions* options) {
                 token.value
             );
 
-            token_free(&token);
+        token_free(&token);
         } while (kind != TOKEN_END_OF_FILE);
-        lexer_rewind(&lexer);
-    }
 
-    diagnostic_engine_print_all(&diag);
+        diagnostic_engine_print_all(&diag);
+        diagnostic_engine_clear(&diag);
+    }
 
     lexer_free(&lexer);
     stream_free(&fs);
     diagnostic_engine_free(&diag);
 }
 
-bool write_ast_dot_file(const char* filepath, const Vector* functions) {
+static bool write_ast_dot_file(const char* filepath, const Vector* functions) {
     assert(filepath != NULL);
 
     FILE* file = NULL;
     i32 status = fopen_s(&file, filepath, "wb");
     if (status != 0 || file == NULL) {
+        printf("Error: failed to open file \"%s\".\n", filepath);
         return false;
     }
 
@@ -63,6 +65,8 @@ bool write_ast_dot_file(const char* filepath, const Vector* functions) {
 
     fclose(file);
 
+    printf("Saved AST graph to \"%s\".\n", filepath);
+
     return true;
 }
 
@@ -72,12 +76,14 @@ void compiler_parse_ast(CompilerOptions* options) {
     Lexer lexer = lexer_create(&fs, options->stream_chunk_capacity, &diag);
     ASTParser parser = ast_parser_create(&lexer, &diag);
 
-    Vector functions = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(ASTNode*), &ast_node_free, true);
-
     for (u64 i = 0; i < options->files.items_count; ++i) {
         const char* filepath = vector_get_ref(&options->files, i);
-        stream_set_source(&fs, filepath);
 
+        stream_set_source(&fs, filepath);
+        lexer_rewind(&lexer);
+
+        Vector functions = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(ASTNode*), &ast_node_free, true);
+        
         while (!is_ast_parser_done(&parser)) {
             ASTNode* funcdef = ast_parser_parse_ast_funcdef_node(&parser);
 
@@ -90,15 +96,16 @@ void compiler_parse_ast(CompilerOptions* options) {
         }
 
         char* output_filepath = str_concat(filepath, ".dot");
+
         write_ast_dot_file(output_filepath, &functions);
 
-        str_free(output_filepath);
-        vector_free(&functions);
-        lexer_rewind(&lexer);
+        diagnostic_engine_print_all(&diag);
         diagnostic_engine_clear(&diag);
-    }
 
-    diagnostic_engine_print_all(&diag);
+        vector_free(&functions);
+        str_free(output_filepath);
+        ast_parser_clear(&parser);
+    }
 
     ast_parser_free(&parser);
     lexer_free(&lexer);
