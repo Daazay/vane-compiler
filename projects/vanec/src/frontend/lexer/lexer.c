@@ -6,7 +6,7 @@
 #include "vanec/utils/string_utils.h"
 #include "vanec/utils/string_builder.h"
 
-Lexer lexer_create(Stream* stream, const u64 chunk_capacity) {
+Lexer lexer_create(Stream* stream, const u64 chunk_capacity, DiagnosticEngine* diag) {
     assert(stream != NULL);
 
     return (Lexer) {
@@ -24,6 +24,7 @@ Lexer lexer_create(Stream* stream, const u64 chunk_capacity) {
             .end.row = DEFAULT_ROW_INDEX,
             .end.col = DEFAULT_COL_INDEX,
         },
+        .diag = diag,
     };
 }
 
@@ -36,6 +37,7 @@ void lexer_free(Lexer* lexer) {
     
     lexer->stream = NULL;
     lexer->chunk_pos = 0;
+    lexer->diag = NULL;
 }
 
 void lexer_rewind(Lexer* lexer) {
@@ -63,6 +65,10 @@ static char get_curr_char_from_stream(Lexer* lexer) {
         }
         stream_read_next_chunk(lexer->stream, &lexer->chunk);
         lexer->chunk_pos = 0;
+    }
+
+    if (lexer->chunk.size == 0) {
+        return '\0';
     }
 
     return lexer->chunk.data[lexer->chunk_pos];
@@ -93,8 +99,7 @@ static void skip_whitespaces(Lexer* lexer) {
     bool has_r = false;
     
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (ch == '\r') {
             ++lexer->chunk_pos;
             ++lexer->loc.end.pos;
@@ -123,7 +128,7 @@ static void skip_whitespaces(Lexer* lexer) {
             continue;
         }
         break;
-    } while (ch != '\0');
+    }
 
     sync_loc(lexer);
 }
@@ -184,8 +189,7 @@ static void skip_single_line_comment(Lexer* lexer) {
     bool has_backslash = false;
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (ch == '\\') {
             consume_char(lexer);
 
@@ -228,7 +232,7 @@ static void skip_single_line_comment(Lexer* lexer) {
 
         has_r = false;
         has_backslash = false;
-    } while (ch != '\0');
+    }
 }
 
 static bool skip_multi_line_comment(Lexer* lexer) {
@@ -239,8 +243,7 @@ static bool skip_multi_line_comment(Lexer* lexer) {
     bool is_good = false;
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (ch == '*') {
             consume_char(lexer);
 
@@ -281,7 +284,11 @@ static bool skip_multi_line_comment(Lexer* lexer) {
 
         has_r = false;
         has_star = false;
-    } while (ch != '\0');
+    }
+
+    if (!is_good && lexer->diag != NULL) {
+        diagnostic_engine_report(lexer->diag, ERR_UNTERMINATED_COMMENT_BLOCK, lexer->loc);
+    }
 
     return is_good;
 }
@@ -296,8 +303,7 @@ Token lexer_parse_string_literal(Lexer* lexer) {
     StringBuilder sb = string_builder_create();
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (ch == '\\' && !has_backslash) {
             string_builder_append_char_right(&sb, ch);
             consume_char(lexer);
@@ -354,13 +360,17 @@ Token lexer_parse_string_literal(Lexer* lexer) {
 
         has_r = false;
         has_backslash = false;
-    } while (ch != '\0');
+    }
 
     char* value = string_builder_get_str(&sb);
     u64 len = sb.buffer.items_count;
     string_builder_free(&sb);
 
     if (!is_good) {
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_UNTERMINATED_COMMENT_BLOCK, lexer->loc);
+        }
+
         return token_create(TOKEN_INVALID, NULL, lexer->loc);
     }
 
@@ -377,8 +387,7 @@ Token lexer_parse_char_literal(Lexer* lexer) {
     StringBuilder sb = string_builder_create();
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (ch == '\\' && !has_backslash) {
             string_builder_append_char_right(&sb, ch);
             consume_char(lexer);
@@ -435,15 +444,37 @@ Token lexer_parse_char_literal(Lexer* lexer) {
 
         has_r = false;
         has_backslash = false;
-    } while (ch != '\0');
+    }
 
-    char* value = string_builder_get_str(&sb);
-    u64 len = sb.buffer.items_count;
-    string_builder_free(&sb);
-
+    // There is no terminating character for char literal
     if (!is_good) {
+        string_builder_free(&sb);
+
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_UNTERMINATED_CHAR_LITERAL, lexer->loc);
+        }
         return token_create(TOKEN_INVALID, NULL, lexer->loc);
     }
+    // There is no characters in char literal body
+    else if (sb.buffer.items_count == 0) {
+        string_builder_free(&sb);
+
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_CHAR_LITERAL_HAS_NO_BODY, lexer->loc);
+        }
+        return token_create(TOKEN_INVALID, NULL, lexer->loc);
+    }
+    else if (sb.buffer.items_count >= 2 && ((char*)sb.buffer.items)[0] != '\\') {
+        string_builder_free(&sb);
+
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_CHAR_LITERAL_HAS_TOO_MANY_CHARACTERS, lexer->loc);
+        }
+        return token_create(TOKEN_INVALID, NULL, lexer->loc);
+    }
+
+    char* value = string_builder_get_str(&sb);
+    string_builder_free(&sb);
 
     return token_create(TOKEN_CHAR_LITERAL, value, lexer->loc);
 }
@@ -457,8 +488,7 @@ Token lexer_parse_hex_literal(Lexer* lexer) {
     string_builder_append_str_right(&sb, "0x");
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (is_punct(ch) || is_space(ch)) {
             break;
         }
@@ -468,14 +498,26 @@ Token lexer_parse_hex_literal(Lexer* lexer) {
 
         string_builder_append_char_right(&sb, ch);
         consume_char(lexer);
-    } while (ch != '\0');
+    }
+    // 0x
+    if (sb.buffer.items_count == 2) {
+        string_builder_free(&sb);
+
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_LITERAL_HAS_NO_BODY, lexer->loc);
+        }
+        return token_create(TOKEN_INVALID, NULL, lexer->loc);
+    }
 
     char* value = string_builder_get_str(&sb);
-    u64 len = sb.buffer.items_count;
     string_builder_free(&sb);
 
-    if (!is_good || len == 0) {
-        return token_create(TOKEN_INVALID, NULL, lexer->loc);
+    if (!is_good) {
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_INVALID_CHARACTERS_IN_LITERAL, lexer->loc, value);
+        }
+
+        return token_create(TOKEN_INVALID, value, lexer->loc);
     }
 
     return token_create(TOKEN_HEX_LITERAL, value, lexer->loc);
@@ -490,8 +532,7 @@ Token lexer_parse_bits_literal(Lexer* lexer) {
     string_builder_append_str_right(&sb, "0b");
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (is_punct(ch) || is_space(ch)) {
             break;
         }
@@ -501,14 +542,26 @@ Token lexer_parse_bits_literal(Lexer* lexer) {
 
         string_builder_append_char_right(&sb, ch);
         consume_char(lexer);
-    } while (ch != '\0');
+    }
+    // 0b
+    if (sb.buffer.items_count == 2) {
+        string_builder_free(&sb);
+
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_LITERAL_HAS_NO_BODY, lexer->loc);
+        }
+        return token_create(TOKEN_INVALID, NULL, lexer->loc);
+    }
 
     char* value = string_builder_get_str(&sb);
-    u64 len = sb.buffer.items_count;
     string_builder_free(&sb);
 
-    if (!is_good || len == 0) {
-        return token_create(TOKEN_INVALID, NULL, lexer->loc);
+    if (!is_good) {
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_INVALID_CHARACTERS_IN_LITERAL, lexer->loc, value);
+        }
+
+        return token_create(TOKEN_INVALID, value, lexer->loc);
     }
 
     return token_create(TOKEN_BITS_LITERAL, value, lexer->loc);
@@ -517,28 +570,25 @@ Token lexer_parse_bits_literal(Lexer* lexer) {
 Token lexer_parse_dec_or_oct_literal(Lexer* lexer, const char prev_ch) {
     assert(lexer != NULL);
 
-    bool is_good_oct = true;
-    bool is_good_dec = true;
+    bool is_good = true;
 
     StringBuilder sb = string_builder_create();
     string_builder_append_char_right(&sb, prev_ch);
 
     char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
+    while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (is_punct(ch) || is_space(ch)) {
             break;
         }
+        else if (prev_ch == '0' && !is_odigit(ch)) {
+            is_good = false;
+        }
         else if (!is_digit(ch)) {
-            is_good_dec = false;
+            is_good = false;
         }
-        else if ((prev_ch == '0') && !is_odigit(ch)) {
-            is_good_oct = false;
-        }
-
         string_builder_append_char_right(&sb, ch);
         consume_char(lexer);
-    } while (ch != '\0');
+    }
 
     char* value = string_builder_get_str(&sb);
     u64 len = sb.buffer.items_count;
@@ -548,48 +598,22 @@ Token lexer_parse_dec_or_oct_literal(Lexer* lexer, const char prev_ch) {
         if (len == 1) {
             return token_create(TOKEN_DEC_LITERAL, value, lexer->loc);
         }
-        else if (!is_good_oct) {
+        else if (!is_good) {
+            if (lexer->diag != NULL) {
+                diagnostic_engine_report(lexer->diag, ERR_INVALID_CHARACTERS_IN_LITERAL, lexer->loc, value);
+            }
             return token_create(TOKEN_INVALID, value, lexer->loc);
         }
         return token_create(TOKEN_OCT_LITERAL, value, lexer->loc);
     }
-
-    if (!is_good_dec) {
+    // dec
+    if (!is_good) {
+        if (lexer->diag != NULL) {
+            diagnostic_engine_report(lexer->diag, ERR_INVALID_CHARACTERS_IN_LITERAL, lexer->loc, value);
+        }
         return token_create(TOKEN_INVALID, value, lexer->loc);
     }
- 
     return token_create(TOKEN_DEC_LITERAL, value, lexer->loc);
-}
-
-char* lexer_parse_dec_literal(Lexer* lexer) {
-    assert(lexer != NULL);
-
-    bool is_good = true;
-
-    StringBuilder sb = string_builder_create();
-
-    char ch = '\0';
-    do {
-        ch = get_curr_char_from_stream(lexer);
-        if (is_punct(ch) || is_space(ch)) {
-            break;
-        }
-        else if (!is_digit(ch)) {
-            is_good = false;
-        }
-
-        string_builder_append_char_right(&sb, ch);
-        consume_char(lexer);
-    } while (ch != '\0');
-
-    char* res = NULL;
-    if (sb.buffer.items_count > 0 && !is_good) {
-        res = string_builder_get_str(&sb);
-    }
-
-    string_builder_free(&sb);
-
-    return res;
 }
 
 Token lexer_parse_next_token(Lexer* lexer) {
@@ -674,6 +698,10 @@ Token lexer_parse_next_token(Lexer* lexer) {
         if (!is_alpha(c) && c != '_') {
             char* value = string_builder_get_str(&sb);
             string_builder_free(&sb);
+
+            if (lexer->diag != NULL) {
+                diagnostic_engine_report(lexer->diag, ERR_UNKNOWN_CHARACTER, lexer->loc, value);
+            }
 
             return token_create(TOKEN_INVALID, value, lexer->loc);
         }
