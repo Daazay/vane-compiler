@@ -27,6 +27,8 @@ TokenStream token_stream_create(Lexer* lexer);
 
 void token_stream_free(TokenStream* ts);
 
+void token_stream_clear(TokenStream* ts);
+
 const Token* token_stream_peek_next(TokenStream* ts);
 
 const Token* token_stream_consume(TokenStream* ts);

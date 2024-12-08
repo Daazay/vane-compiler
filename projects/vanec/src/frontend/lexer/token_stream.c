@@ -46,6 +46,20 @@ void token_stream_free(TokenStream* ts) {
     token_stream_iterator_free(ts->head);
 }
 
+void token_stream_clear (TokenStream* ts) {
+    if (ts == NULL) {
+        return;
+    }
+
+    token_stream_iterator_free(ts->head);
+
+    ts->head = NULL;
+    ts->curr = NULL;
+    ts->next = NULL;
+    ts->count = 0;
+    ts->done = false;
+}
+
 static inline TokenStreamIterator* token_stream_parse_next(TokenStream* ts) {
     assert(ts != NULL);
 
@@ -89,6 +103,8 @@ const Token* token_stream_consume(TokenStream* ts) {
     }
     ts->curr = ts->next;
     ts->next = ts->curr->next;
+
+    return &ts->curr->token;
 }
 
 void token_stream_move_back(TokenStream* ts) {
