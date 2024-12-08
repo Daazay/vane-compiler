@@ -7,9 +7,9 @@
 StreamChunk stream_chunk_create(const u64 chunk_capacity) {
     assert(chunk_capacity >= MIN_STREAM_CHUNK_CAPACITY && chunk_capacity <= MAX_STREAM_CHUNK_CAPACITY);
 
-    u8* data = malloc(sizeof(chunk_capacity));
+    u8* data = malloc(chunk_capacity);
     assert(data != NULL);
-
+    
     return (StreamChunk) {
         .capacity = chunk_capacity,
         .size = 0,
@@ -74,15 +74,17 @@ bool stream_set_source(Stream* stream, const char* str) {
         stream->source.string = str;
     }
     else if (stream->kind == STREAM_FILE) {
-        assert(stream->source.file.handle == NULL);
-
+        // close previos if open
+        if (stream->source.file.handle != NULL) {
+            fclose(stream->source.file.handle);
+        }
+        
         stream->source.file.handle = NULL;
         i32 res = fopen_s(&stream->source.file.handle, str, "rb");
 
         if (res != 0 || stream->source.file.handle == NULL) {
             return false;
         }
-        //assert(res == 0 && stream->source.file.handle != NULL);
 
         fseek(stream->source.file.handle, 0, SEEK_END);
         stream->size = ftell(stream->source.file.handle);
@@ -90,6 +92,9 @@ bool stream_set_source(Stream* stream, const char* str) {
 
         stream->source.file.filepath = str;
     }
+
+    stream_rewind(stream);
+
     return true;
 }
 
@@ -135,7 +140,8 @@ void stream_read_next_chunk(Stream* stream, StreamChunk* chunk) {
 
         chunk->size = fread_s(chunk->data, chunk->capacity, sizeof(u8), chunk->capacity, stream->source.file.handle);
 
-        assert(chunk->size == chunk->capacity || ferror(stream->source.file.handle) == 0);
+        i32 err = ferror(stream->source.file.handle);
+        assert(chunk->size == chunk->capacity || err == 0);
 
         chunk->eof = (bool)feof(stream->source.file.handle);
         stream->offset = stream->offset + chunk->size;
