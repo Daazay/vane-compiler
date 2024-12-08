@@ -6,6 +6,7 @@
 typedef enum {
     COMPILER_COMMAND_UNDEFINED = 0,
     COMPILER_COMMAND_LEX_ONLY,
+    COMPILER_COMMAND_PARSE_AST_ONLY,
 } CompilerCommand;
 
 typedef enum {

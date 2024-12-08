@@ -1,0 +1,25 @@
+// greatest commond divisor
+
+function gcd(a as int, b as int) as int
+    dim result as int
+    result = a < b ? a : b;
+
+    while (result > 0)
+        if (a % result == 0 && b % result == 0) then
+            break
+        end if
+        --result;
+    wend
+
+    return(result);
+end function
+
+function main() as int
+    dim a, b as int
+    a = 98;
+    b = 56;
+
+    printf("GCD of %d and %d is %d\n", a, b, gcd(a, b));
+
+    return(0);
+end function

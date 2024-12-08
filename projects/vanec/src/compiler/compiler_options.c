@@ -93,6 +93,7 @@ static inline bool parse_option(ArgParserContext* ctx) {
             return true;
         }
     }
+    PRINT_ERR("Unknown option \"%s\".", ctx->current_arg);
     return false;
 }
 
@@ -114,6 +115,17 @@ static inline bool parse_command(ArgParserContext* ctx) {
         }
         return true;
     }
+    if (match_arg(ctx->current_arg, "ast")) {
+        ctx->options->command = COMPILER_COMMAND_PARSE_AST_ONLY;
+
+        append_arg_files(ctx, &ctx->options->files);
+        if (ctx->options->files.items_count == 0) {
+            PRINT_ERR("The \"ast\" command need at least one file.");
+            return false;
+        }
+        return true;
+    }
+    PRINT_ERR("Unknown command \"%s\".", ctx->current_arg);
     return false;
 }
 

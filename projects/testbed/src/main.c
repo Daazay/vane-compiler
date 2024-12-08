@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
     u32 args_count = 3;
     char* args[] = {
         "",
-        "lex",
-        "D:/study/univer/ITMO/system and applied software/vane-language/examples/fizz_buzz.vn"
+        "ast",
+        "D:/study/univer/ITMO/system and applied software/vane-language/examples/gcd.vn"
     };
 
     compiler_options_init(&options);
@@ -22,6 +22,9 @@ int main(int argc, char** argv) {
     switch (options.command) {
     case COMPILER_COMMAND_LEX_ONLY: {
         compiler_lex(&options);
+    } break;
+    case COMPILER_COMMAND_PARSE_AST_ONLY: {
+        compiler_parse_ast(&options);
     } break;
     };
 
