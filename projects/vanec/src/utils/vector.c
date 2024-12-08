@@ -15,7 +15,7 @@ static void vector_resize(Vector* vector, const u64 capacity) {
     vector->capacity = capacity;
 }
 
-Vector vector_create(const u64 capacity, const u64 item_size, const void(*free)(void*), const bool is_ptr) {
+Vector vector_create(const u64 capacity, const u64 item_size, void(*free)(void*), const bool is_ptr) {
     assert(capacity > 0 && item_size > 0);
 
     void* items = malloc(capacity * item_size);
@@ -111,7 +111,7 @@ void vector_insert(Vector* vector, const void* where, const void* items, const u
     vector->items_count += count;
 }
 
-const void* vector_get_ref(const Vector* vector, const u64 index) {
+void* vector_get_ref(const Vector* vector, const u64 index) {
     assert(vector != NULL);
     assert(index < vector->items_count);
 
