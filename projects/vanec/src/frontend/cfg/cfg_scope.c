@@ -9,9 +9,9 @@ CFGScope* cfg_scope_create(const CFGScopeKind kind, CFGScope* prev) {
 
     scope->kind = kind;
     scope->prev = prev;
-    scope->has_break = false;
     scope->break_node = NULL;
     scope->backedge_node = NULL;
+    scope->return_node = NULL;
 
     return scope;
 }

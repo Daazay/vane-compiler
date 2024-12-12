@@ -145,7 +145,7 @@ void write_dot_header(FILE* handle) {
 void write_ast_node_to_dot_file(FILE* file, const char* prev_node_name, const ASTNode* node) {
     assert(file != NULL && node != NULL);
     static u64 node_num = 0;
-    char* node_name = str_format("node%d", ++node_num);
+    char* node_name = str_format("ast_node%d", ++node_num);
 
     switch (node->kind) {
     case AST_FUNCSIGN_NODE: {

@@ -1042,9 +1042,12 @@ ASTNode* ast_parser_parse_ast_return_stmt_node(ASTParser* parser) {
 
     SourceLoc loc = token->loc;
 
-    ASTNode* expr = ast_parser_parse_ast_expression_node(parser, PREC_NONE);
-    if (expr == NULL) {
-        return NULL;
+    ASTNode* expr = NULL;
+    if (token_stream_peek_next(&parser->ts)->kind != TOKEN_SEMICOLON) {
+        expr = ast_parser_parse_ast_expression_node(parser, PREC_NONE);
+        if (expr == NULL) {
+            return NULL;
+        }
     }
 
     token = EXPECT_NEXT(true, true, TOKEN_SEMICOLON);

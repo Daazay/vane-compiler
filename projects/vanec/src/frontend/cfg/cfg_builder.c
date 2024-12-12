@@ -6,8 +6,11 @@ CFGNode* build_cfg_for_function(CFGContext* ctx, const ASTNode* ast) {
     assert(ctx != NULL && ast != NULL);
 
     CFGNode* func_entry = cfg_context_create_cfg_node(ctx, CFG_FUNC_ENTRY_NODE);
+    CFGNode* func_exit = cfg_context_create_cfg_node(ctx, CFG_FUNC_EXIT_NODE);
 
     cfg_context_enter_scope(ctx, CFG_FUNCTION_SCOPE);
+
+    ctx->curr_scope->return_node = func_exit;
 
     const Vector* stmts = &ast->as.funcdef->stmts;
     if (!build_cfg_for_statements_block(ctx, stmts, &func_entry->as.func_entry->block.first, &func_entry->as.func_entry->block.last)) {
@@ -15,8 +18,6 @@ CFGNode* build_cfg_for_function(CFGContext* ctx, const ASTNode* ast) {
     }
 
     cfg_context_leave_scope(ctx);
-
-    CFGNode* func_exit = cfg_context_create_cfg_node(ctx, CFG_FUNC_EXIT_NODE);
 
     if (func_entry->as.func_entry->block.first == NULL) {
         func_entry->as.func_entry->block.first = func_exit;
@@ -35,7 +36,7 @@ bool build_cfg_for_statements_block(CFGContext* ctx, const Vector* block, CFGNod
         if (!build_cfg_for_statement(ctx, stmt, first, last)) {
             return false;
         }
-        if ((i + 1 < block->items_count) && (stmt->kind == AST_BREAK_STMT_NODE || stmt->kind == AST_CONTINUE_STMT_NODE)) {
+        if ((i + 1 < block->items_count) && (stmt->kind == AST_BREAK_STMT_NODE || stmt->kind == AST_CONTINUE_STMT_NODE || stmt->kind == AST_RETURN_STMT_NODE)) {
             if (ctx->diag != NULL) {
                 const ASTNode* next_stmt = vector_get_ref(block, i + 1);
                 diagnostic_engine_report(ctx->diag, ERR_UNREACHABLE_CODE, next_stmt->loc);
@@ -58,6 +59,7 @@ bool build_cfg_for_statement(CFGContext* ctx, const ASTNode* ast, CFGNode** firs
     case AST_DO_WHILE_STMT_NODE: { return prepare_do_loop_cfg_node(ctx, ast, first, last); } break;
     case AST_BREAK_STMT_NODE: { return handle_break_stmt_in_cfg(ctx, ast, first, last); } break;
     case AST_CONTINUE_STMT_NODE: { return handle_continue_stmt_in_cfg(ctx, ast, first, last); } break;
+    case AST_RETURN_STMT_NODE: { return handle_return_stmt_in_cfg(ctx, ast, first, last); } break;
     default: {
         assert(false && "Unreachable");
     } break;
@@ -160,7 +162,7 @@ bool prepare_while_loop_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** 
     loop_entry->as.loop_entry->exit = loop_exit;
 
     if (*first == NULL) {
-        *first = condition;
+        *first = loop_entry;
     }
     *last = chain_cfg_nodes(*last, loop_entry);
 
@@ -206,7 +208,7 @@ bool prepare_do_loop_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** fir
     loop_entry->as.loop_entry->exit = loop_exit;
 
     if (*first == NULL) {
-        *first = condition;
+        *first = loop_entry;
     }
     *last = chain_cfg_nodes(*last, loop_entry);
 
@@ -230,7 +232,6 @@ bool handle_break_stmt_in_cfg(CFGContext* ctx, const ASTNode* ast, CFGNode** fir
 
     CFGNode* cfg = cfg_context_create_cfg_node(ctx, CFG_BREAK_NODE);
     cfg->as.break_->next = scope_it->break_node;
-    scope_it->has_break = true;
 
     if (*first == NULL) {
         *first = cfg;
@@ -257,7 +258,27 @@ bool handle_continue_stmt_in_cfg(CFGContext* ctx, const ASTNode* ast, CFGNode** 
 
     CFGNode* cfg = cfg_context_create_cfg_node(ctx, CFG_BACKEDGE_NODE);
     cfg->as.backedge->next = scope_it->backedge_node;
-    scope_it->has_break = true;
+
+    if (*first == NULL) {
+        *first = cfg;
+    }
+    *last = chain_cfg_nodes(*last, cfg);
+
+    return true;
+}
+
+bool handle_return_stmt_in_cfg(CFGContext* ctx, const ASTNode* ast, CFGNode** first, CFGNode** last) {
+    assert(ctx != NULL && ast != NULL && first != NULL && last != NULL);
+
+    CFGScope* scope_it = ctx->curr_scope;
+    while (scope_it != NULL && scope_it->kind != CFG_FUNCTION_SCOPE) {
+        scope_it = scope_it->prev;
+    }
+
+    assert(scope_it != NULL && "WTF");
+
+    CFGNode* cfg = cfg_context_create_cfg_node(ctx, CFG_RETURN_NODE);
+    cfg->as.return_->next = scope_it->return_node;
 
     if (*first == NULL) {
         *first = cfg;

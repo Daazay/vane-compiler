@@ -25,6 +25,7 @@ CFGNode* cfg_node_create(const CFGNodeKind kind, const u32 id, const CFGScope* s
     case CFG_LOOP_EXIT_NODE: { ALLOCATE_CFG_NODE_DATA(node->as.loop_exit, struct CFGBasicData); } break;
     case CFG_BACKEDGE_NODE: { ALLOCATE_CFG_NODE_DATA(node->as.backedge, struct CFGBasicData); } break;
     case CFG_BREAK_NODE: { ALLOCATE_CFG_NODE_DATA(node->as.break_, struct CFGBasicData); } break;
+    case CFG_RETURN_NODE: { ALLOCATE_CFG_NODE_DATA(node->as.return_, struct CFGBasicData); } break;
     default: {
         assert(false && "Unreachable");
     } break;
@@ -60,6 +61,9 @@ void cfg_node_free(CFGNode* node) {
     } break;
     case CFG_BREAK_NODE: {
         free(node->as.break_);
+    } break;
+    case CFG_RETURN_NODE: {
+        free(node->as.return_);
     } break;
     default: {
         assert(false && "Unknown node kind.");
@@ -127,12 +131,16 @@ CFGNode* chain_cfg_nodes(CFGNode* prev, CFGNode* next) {
     } break;
     case CFG_BACKEDGE_NODE: {
         /* DO NOTHING, CAUSE IT'S DONE MANUALY */
-        assert(false && "Must not fall in here.");
+        /*assert(false && "Must not fall in here.");*/
     } break;
     case CFG_BREAK_NODE: {
         /* DO NOTHING, CAUSE IT'S DONE MANUALY */
-        assert(false && "Must not fall in here.");
-    } break;    
+        //assert(false && "Must not fall in here.");
+    } break;
+    case CFG_RETURN_NODE: {
+        /* DO NOTHING, CAUSE IT'S DONE MANUALY */
+        //assert(false && "Must not fall in here.");
+    } break;
     default: {
         assert(false && "Unknown node kind.");
     } break;

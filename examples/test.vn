@@ -1,0 +1,55 @@
+function main1()
+end function
+
+function main2()
+    dim a as int
+end function
+
+function main3()
+    if (true) then
+        dim a as int
+    else 
+        dim a as int
+    end if
+end function
+
+function main4()
+    while (true)
+        dim a as int
+    wend
+end function
+
+function main5()
+    do 
+        dim a as int
+    loop until true
+end function
+
+function main6()
+    dim a as int
+
+    if (a) then
+        while true
+            if (a == 5) then
+                return; 
+            end if 
+            if (a == 6) then
+                a + 5;
+                break
+            end if
+            continue
+        wend
+    else
+        do
+            if (true) then
+                return;
+            end if
+
+            a = 4;
+
+            if (true) then
+                return 10;
+            end if 
+        loop until false
+    end if
+end function

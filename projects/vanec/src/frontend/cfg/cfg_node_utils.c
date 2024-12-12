@@ -33,28 +33,31 @@ static void write_cfg_node_decl(FILE* handle, const CFGNode* node) {
 
     switch (node->kind) {
     case CFG_FUNC_ENTRY_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:func_entry\", fillcolor=\"palegreen\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:func_entry\", fillcolor=\"palegreen\"];\n", node->id, node->id);
     } break;
     case CFG_FUNC_EXIT_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:func_exit\", fillcolor=\"tomato\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:func_exit\", fillcolor=\"crimson\"];\n", node->id, node->id);
     } break;
     case CFG_BASIC_BLOCK_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:bb\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:bb\"];\n", node->id, node->id);
     } break;
     case CFG_CONDITION_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:condition\", fillcolor=\"lemonchiffon\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:condition\", fillcolor=\"lemonchiffon\"];\n", node->id, node->id);
     } break;
     case CFG_LOOP_ENTRY_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:loop_entry\", fillcolor=\"lightskyblue\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:loop_entry\", fillcolor=\"lightskyblue\"];\n", node->id, node->id);
     } break;
     case CFG_LOOP_EXIT_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:loop_exit\", fillcolor=\"lightskyblue\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:loop_exit\", fillcolor=\"lightskyblue\"];\n", node->id, node->id);
     } break;
     case CFG_BACKEDGE_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:backedge\", style=\"dashed\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:backedge\", style=\"filled, dashed\"];\n", node->id, node->id);
     } break;
     case CFG_BREAK_NODE: {
-        fprintf(handle, "\tnode%ld [label=\"%ld:break\", fillcolor=\"tomato\", style=\"dashed\"];\n", node->id, node->id);
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:break\", fillcolor=\"tomato\", style=\"dashed, filled\"];\n", node->id, node->id);
+    } break;
+    case CFG_RETURN_NODE: {
+        fprintf(handle, "\tcfg_node%ld [label=\"%ld:return\", fillcolor=\"tomato\", style=\"dashed, filled\"];\n", node->id, node->id);
     } break;
     default: {
         assert(false && "unreachable");
@@ -85,7 +88,7 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_to_dot_file(handle, visited_count, node->id, "", "", "", node->as.func_entry->block.next);
     } break;
     case CFG_FUNC_EXIT_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }
@@ -94,7 +97,7 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_decl(handle, node);
     } break;
     case CFG_BASIC_BLOCK_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }
@@ -105,7 +108,7 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_to_dot_file(handle, visited_count, node->id, "", "", "", node->as.basic_block->next);
     } break;
     case CFG_CONDITION_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }
@@ -117,7 +120,7 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_to_dot_file(handle, visited_count, node->id, "false", "tomato", "", node->as.condition->else_branch.next);
     } break;
     case CFG_LOOP_ENTRY_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }
@@ -128,7 +131,7 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_to_dot_file(handle, visited_count, node->id, "", "", "", node->as.loop_entry->block.next);
     } break;
     case CFG_LOOP_EXIT_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }
@@ -139,7 +142,7 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_to_dot_file(handle, visited_count, node->id, "", "", "", node->as.loop_exit->next);
     } break;
     case CFG_BACKEDGE_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }
@@ -150,7 +153,18 @@ static void write_cfg_node_to_dot_file(
         write_cfg_node_to_dot_file(handle, visited_count, node->id, "", "", "dashed", node->as.backedge->next);
     } break;
     case CFG_BREAK_NODE: {
-        fprintf(handle, "\tnode%ld -> node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
+        if (visited_count != node->visited) {
+            break;
+        }
+        ++node->visited;
+
+        write_cfg_node_decl(handle, node);
+
+        write_cfg_node_to_dot_file(handle, visited_count, node->id, "", "", "dashed", node->as.break_->next);
+    } break;
+    case CFG_RETURN_NODE: {
+        fprintf(handle, "\tcfg_node%ld -> cfg_node%ld [label=\"%s\", color=\"%s\", style=\"%s\"];\n", prev_node_id, node->id, edge_label, edge_color, edge_style);
         if (visited_count != node->visited) {
             break;
         }

@@ -18,10 +18,10 @@ struct CFGScope {
     CFGScopeKind kind;
 
     CFGScope* prev;
-    bool has_break;
 
     CFGNode* break_node;
     CFGNode* backedge_node;
+    CFGNode* return_node;
 };
 
 CFGScope* cfg_scope_create(const CFGScopeKind kind, CFGScope* prev);

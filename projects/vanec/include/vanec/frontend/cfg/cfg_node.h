@@ -6,14 +6,15 @@
 
 typedef enum {
     CFG_UNKNOWN_NODE = 0,
-    CFG_FUNC_ENTRY_NODE = 1,
-    CFG_FUNC_EXIT_NODE = 2,
-    CFG_BASIC_BLOCK_NODE = 3,
-    CFG_CONDITION_NODE = 4,
-    CFG_LOOP_ENTRY_NODE = 5,
-    CFG_LOOP_EXIT_NODE = 6,
-    CFG_BACKEDGE_NODE = 7,
-    CFG_BREAK_NODE = 8,
+    CFG_FUNC_ENTRY_NODE,
+    CFG_FUNC_EXIT_NODE,
+    CFG_BASIC_BLOCK_NODE,
+    CFG_CONDITION_NODE,
+    CFG_LOOP_ENTRY_NODE,
+    CFG_LOOP_EXIT_NODE,
+    CFG_BACKEDGE_NODE,
+    CFG_BREAK_NODE,
+    CFG_RETURN_NODE,
 } CFGNodeKind;
 
 typedef struct CFGNode CFGNode;
@@ -57,6 +58,7 @@ struct CFGNode {
         struct CFGBasicData* loop_exit;
         struct CFGBasicData* backedge;
         struct CFGBasicData* break_;
+        struct CFGBasicData* return_;
     } as;
 
     const CFGScope* scope;

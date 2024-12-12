@@ -21,3 +21,5 @@ bool prepare_do_loop_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** fir
 bool handle_break_stmt_in_cfg(CFGContext* ctx, const ASTNode* ast, CFGNode** first, CFGNode** last);
 
 bool handle_continue_stmt_in_cfg(CFGContext* ctx, const ASTNode* ast, CFGNode** first, CFGNode** last);
+
+bool handle_return_stmt_in_cfg(CFGContext* ctx, const ASTNode* ast, CFGNode** first, CFGNode** last);
