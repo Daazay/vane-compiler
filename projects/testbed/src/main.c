@@ -126,9 +126,6 @@ int main(int argc, char** argv) {
                 }
             }
 
-            printf("\ndirpath: %s\n", dirpath);
-            printf("filename: %s\n\n", filename);
-
             char* output_filepath_tmp = options.output_dir == NULL
                 ? str_format("%s%s", dirpath, filename)
                 : str_format("%s/%s", options.output_dir, filename);

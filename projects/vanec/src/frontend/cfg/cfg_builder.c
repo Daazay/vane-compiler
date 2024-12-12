@@ -10,7 +10,7 @@ CFGNode* build_cfg_for_function(CFGContext* ctx, const ASTNode* ast) {
     cfg_context_enter_scope(ctx, CFG_FUNCTION_SCOPE);
 
     const Vector* stmts = &ast->as.funcdef->stmts;
-    if (build_cfg_for_statements_block(ctx, stmts, &func_entry->as.func_entry->block.first, &func_entry->as.func_entry->block.last)) {
+    if (!build_cfg_for_statements_block(ctx, stmts, &func_entry->as.func_entry->block.first, &func_entry->as.func_entry->block.last)) {
         return false;
     }
 
