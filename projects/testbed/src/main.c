@@ -70,7 +70,31 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            // TODO;
+            Vector functions = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(ASTNode*), &ast_node_free, true);
+
+            while (!is_ast_parser_done(ast_parser)) {
+                ASTNode* funcdef = ast_parser_parse_ast_funcdef_node(ast_parser);
+
+                if (funcdef != NULL) {
+                    vector_push_back(&functions, &funcdef);
+                } 
+                // There is no recovery at the moment.
+                // Just skip to the end of the file.
+                else {
+                    ast_parser_skip_to_the_end_of_a_file(ast_parser);
+                }
+            }
+
+            char* output_filepath = str_concat(filepath, ".dot");
+
+            write_ast_dot_file(output_filepath, &functions);
+
+            diagnostic_engine_print_all(diag);
+            diagnostic_engine_clear(diag);
+
+            vector_free(&functions);
+            str_free(output_filepath);
+            ast_parser_clear(ast_parser);
         }
     } break;
     };

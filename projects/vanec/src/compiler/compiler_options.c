@@ -14,7 +14,7 @@ void compiler_options_init(CompilerOptions* options) {
     options->flags = COMPILER_FLAG_NONE;
 
     options->files = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(char*), &str_free, true);
-    options->stream_chunk_capacity = 8;
+    options->stream_chunk_capacity = DEFAULT_STREAM_CHUNK_CAPACITY;
     options->output_dir = NULL;
     options->working_dir = NULL;
 }
