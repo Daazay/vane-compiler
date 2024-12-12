@@ -56,6 +56,10 @@ struct ASTLoopStmtData {
     Vector stmts;
 };
 
+struct ASTReturnData {
+    ASTNode* expt;
+};
+
 struct ASTExpressionStmtData {
     ASTNode* expr;
 };
@@ -113,6 +117,7 @@ struct ASTNode {
         struct ASTLoopStmtData* while_stmt;
         struct ASTLoopStmtData* do_while_stmt;
         struct ASTExpressionStmtData* expression_stmt;
+        struct ASTExpressionStmtData* return_stmt;
 
         struct ASTBinaryExprData* binary_expr;
         struct ASTUnaryExprData* unary_expr;

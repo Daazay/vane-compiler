@@ -50,6 +50,8 @@ ASTNode* ast_parser_parse_ast_continue_stmt_node(ASTParser* parser);
 
 ASTNode* ast_parser_parse_ast_expression_stmt_node(ASTParser* parser);
 
+ASTNode* ast_parser_parse_ast_return_stmt_node(ASTParser* parser);
+
 ASTNode* ast_parser_parse_ast_literal_expr_node(ASTParser* parser);
 
 ASTNode* ast_parser_parse_ast_place_expr_node(ASTParser* parser);

@@ -2,8 +2,19 @@
 
 #include "vanec/utils/defines.h"
 
-#include "vanec/frontend/cfg/cfg_node_kind.h"
 #include "vanec/frontend/cfg/cfg_scope.h"
+
+typedef enum {
+    CFG_UNKNOWN_NODE = 0,
+    CFG_FUNC_ENTRY_NODE = 1,
+    CFG_FUNC_EXIT_NODE = 2,
+    CFG_BASIC_BLOCK_NODE = 3,
+    CFG_CONDITION_NODE = 4,
+    CFG_LOOP_ENTRY_NODE = 5,
+    CFG_LOOP_EXIT_NODE = 6,
+    CFG_BACKEDGE_NODE = 7,
+    CFG_BREAK_NODE = 8,
+} CFGNodeKind;
 
 typedef struct CFGNode CFGNode;
 

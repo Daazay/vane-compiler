@@ -43,6 +43,7 @@ comment
 !=
 =
 ==
+ident
 "fox"
 'c'
 515
@@ -64,6 +65,7 @@ loop
 until
 break
 continue
+return
 bool
 byte
 int
