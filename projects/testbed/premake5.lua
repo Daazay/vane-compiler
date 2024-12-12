@@ -23,10 +23,6 @@ project "testbed"
     }
     -- 
     debugargs { 
-        "--chunk_cap",
-        "32",
-        "ast",
-        ("\"" .. EXAMPLES_DIR_PATH .. "armstrong_numbers.vn" .. "\""),
-        ("\"" .. EXAMPLES_DIR_PATH .. "fizz_buzz.vn" .. "\""),
-        ("\"" .. EXAMPLES_DIR_PATH .. "gcd.vn" .. "\"")
+        "--chunk_cap", "128", 
+        "cfg", ("\"" .. EXAMPLES_DIR_PATH .. "armstrong_numbers.vn" .. "\""), ("\"" .. EXAMPLES_DIR_PATH .. "fizz_buzz.vn" .. "\""), ("\"" .. EXAMPLES_DIR_PATH .. "gcd.vn" .. "\""),
     }

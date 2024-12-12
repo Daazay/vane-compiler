@@ -11,12 +11,10 @@ void compiler_options_init(CompilerOptions* options) {
         return;
     }
     options->command = COMPILER_COMMAND_UNDEFINED;
-    options->flags = COMPILER_FLAG_NONE;
 
     options->files = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(char*), &str_free, true);
-    options->stream_chunk_capacity = DEFAULT_STREAM_CHUNK_CAPACITY;
+    options->stream_chunk_capacity = MIN_STREAM_CHUNK_CAPACITY;
     options->output_dir = NULL;
-    options->working_dir = NULL;
 }
 
 typedef struct {
@@ -30,17 +28,21 @@ typedef struct {
 } ArgParserContext;
 
 #define PRINT(msg, ...) printf(msg "\n", ##__VA_ARGS__)
+#define PRINT_ERROR_AND_EXIT(code, msg, ...)    \
+printf("Error: "msg"\n", ##__VA_ARGS__);        \
+error_exit(code)
 
 static void print_usage(const char* path) {
-    PRINT("Usage: %s [options] command [arguments]", path);
+    PRINT("Usage: %s [options...] command [arguments...]", path);
     PRINT("");
     PRINT("Commands:");
-    PRINT("  lex <file> [<file> ...]   Lex a file into tokens.");
-    PRINT("  ast <file> [<file> ...]   Parse a file into an abstract syntax tree.");
+    PRINT("  lex <file> [<file> ...]   Lex a file(s) into tokens.");
+    PRINT("  ast <file> [<file> ...]   Parse a file(s) into an abstract syntax tree.");
+    PRINT("  cfg <file> [<file> ...]   Build control flow graph(s) for functions in a file(s).");
     PRINT("");
-    PRINT("Options:");
-    PRINT("  --output_dir <dir> - Specify the output dirpath.");
-    PRINT("  --chunk_cap <number> - Specify stream chunk capacity.");
+    PRINT("General options:");
+    PRINT("  --chunk_cap <number>   - set stream chunk capacity.");
+    PRINT("  --output_dir <dirpath> - set output directory path.");
 }
 
 static inline bool is_option(const char* arg) {
@@ -73,7 +75,7 @@ static inline void parse_option(ArgParserContext* ctx) {
 
         if (match_arg(opt, "output_dir")) {
             if (!has_next(ctx) || is_next_opt(ctx)) {
-                error_exit_with_msg(-1, "The argument for the \"output_dir\" option was not provided");
+                PRINT_ERROR_AND_EXIT(-1, "The argument for the \"output_dir\" option was not provided");
             }
 
             ctx->options->output_dir = str_dup(ctx->args[++ctx->arg_index]);
@@ -81,7 +83,7 @@ static inline void parse_option(ArgParserContext* ctx) {
         }
         else if (match_arg(opt, "chunk_cap")) {
             if (!has_next(ctx) || is_next_opt(ctx)) {
-                error_exit_with_msg(-1, "The argument for the \"chunk_cap\" option was not provided");
+                PRINT_ERROR_AND_EXIT(-1, "The argument for the \"chunk_cap\" option was not provided");
             }
 
             const char* number = ctx->args[++ctx->arg_index];
@@ -91,7 +93,7 @@ static inline void parse_option(ArgParserContext* ctx) {
             return;
         }
     }
-    error_exit_with_msg(-1, "Unknown option \"%s\".", ctx->current_arg);
+    PRINT_ERROR_AND_EXIT(-1, "Unknown option \"%s\".", ctx->current_arg);
 }
 
 static inline void append_arg_files(ArgParserContext* ctx, Vector* vector) {
@@ -107,7 +109,7 @@ static inline void parse_command(ArgParserContext* ctx) {
 
         append_arg_files(ctx, &ctx->options->files);
         if (ctx->options->files.items_count == 0) {
-            error_exit_with_msg(-1, "The \"lex\" command need at least one file.");
+            PRINT_ERROR_AND_EXIT(-1, "The \"lex\" command need at least one file.");
         }
         return;
     }
@@ -116,11 +118,20 @@ static inline void parse_command(ArgParserContext* ctx) {
 
         append_arg_files(ctx, &ctx->options->files);
         if (ctx->options->files.items_count == 0) {
-            error_exit_with_msg(-1, "The \"ast\" command need at least one file.");
+            PRINT_ERROR_AND_EXIT(-1, "The \"ast\" command need at least one file.");
         }
         return;
     }
-    error_exit_with_msg(-1, "Unknown command \"%s\".", ctx->current_arg);
+    if (match_arg(ctx->current_arg, "cfg")) {
+        ctx->options->command = COMPILER_COMMAND_BUILD_CFG_ONLY;
+
+        append_arg_files(ctx, &ctx->options->files);
+        if (ctx->options->files.items_count == 0) {
+            PRINT_ERROR_AND_EXIT(-1, "The \"cfg\" command need at least one file.");
+        }
+        return;
+    }
+    PRINT_ERROR_AND_EXIT(-1, "Unknown command \"%s\".", ctx->current_arg);
 }
 
 void compiler_options_parse_args(CompilerOptions* options, int argc, char** argv) {
@@ -148,11 +159,11 @@ void compiler_options_parse_args(CompilerOptions* options, int argc, char** argv
             parse_command(&ctx);
             continue;
         }
-        error_exit_with_msg(-1, "Found an unexpected argument \"%s\".\n", ctx.current_arg);
+        PRINT_ERROR_AND_EXIT(-1, "Found an unexpected argument \"%s\".\n", ctx.current_arg);
     }
 
     if (ctx.options->command == COMPILER_COMMAND_UNDEFINED) {
-        error_exit_with_msg(-1, "The command is not specified.\n");
+        PRINT_ERROR_AND_EXIT(-1, "The command is not specified.\n");
     }
 }
 
@@ -163,8 +174,6 @@ void compiler_options_free(CompilerOptions* options) {
 
     vector_free(&options->files);
     str_free(options->output_dir);
-    str_free(options->working_dir);
 
-    options->working_dir = NULL;
     options->output_dir = NULL;
 }

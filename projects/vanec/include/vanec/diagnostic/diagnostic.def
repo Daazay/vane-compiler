@@ -13,4 +13,8 @@ DIAG(ERR_UNKNOWN_CHARACTER, syntax, error, "unknown character '%s'")
 
 DIAG(ERR_EXPECT_TOKEN_KIND_OF, semantic, error, "expected %s, but received %s")
 
+DIAG(ERR_INVALID_BREAK_USAGE, semantic, error, "invalid usage of 'break' statement. Break statement can only be used inside a loop scope")
+DIAG(ERR_INVALID_CONTINUE_USAGE, semantic, error, "invalid usage of 'continue' statement. Break statement can only be used inside a loop scope")
+DIAG(ERR_UNREACHABLE_CODE, semantic, warning, "unreachable code after break statement")
+
 #undef DIAG

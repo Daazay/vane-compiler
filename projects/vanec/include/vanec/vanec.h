@@ -5,6 +5,7 @@
 #include "vanec/utils/vector.h"
 #include "vanec/utils/string_utils.h"
 #include "vanec/utils/string_builder.h"
+#include "vanec/utils/file_utils.h"
 
 #include "vanec/diagnostic/source_loc.h"
 #include "vanec/diagnostic/diagnostic.h"
@@ -19,4 +20,8 @@
 #include "vanec/frontend/ast/ast_node_utils.h"
 #include "vanec/frontend/ast/ast_parser.h"
 
-#include "vanec/utils/file_utils.h"
+#include "vanec/frontend/cfg/cfg_node.h"
+#include "vanec/frontend/cfg/cfg_node_utils.h"
+#include "vanec/frontend/cfg/cfg_builder.h"
+#include "vanec/frontend/cfg/cfg_context.h"
+#include "vanec/frontend/cfg/cfg_scope.h"

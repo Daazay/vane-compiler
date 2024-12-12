@@ -7,19 +7,17 @@ typedef enum {
     COMPILER_COMMAND_UNDEFINED      = 0,
     COMPILER_COMMAND_LEX_ONLY       = 1,
     COMPILER_COMMAND_PARSE_AST_ONLY = 2,
+    COMPILER_COMMAND_BUILD_CFG_ONLY = 3,
 } CompilerCommand;
-
-typedef enum {
-    COMPILER_FLAG_NONE = 0,
-} CompilerFlag;
 
 typedef struct {
     Vector files;
-    char* working_dir;
     char* output_dir;
+    
     u64 stream_chunk_capacity;
+    bool output_ast;
+    bool output_cfg;
 
-    u64 flags;
     CompilerCommand command;
 } CompilerOptions;
 
