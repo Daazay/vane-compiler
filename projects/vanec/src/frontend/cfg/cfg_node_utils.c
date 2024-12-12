@@ -166,7 +166,7 @@ static void write_cfg_node_to_dot_file(
     };
 }
 
-bool write_cfg_dot_file(const char* filepath, const CFGNode* cfg) {
+bool write_cfg_dot_file(const char* filepath, CFGNode* cfg) {
     assert(filepath != NULL);
 
     FILE* file = NULL;

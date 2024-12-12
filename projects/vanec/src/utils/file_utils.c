@@ -91,27 +91,19 @@ char* get_dirpath(const char* filepath) {
         return NULL;
     }
 
-    else if (len == 1 && filepath[0] == '.') {
+    u64 off = len - 1;
+    while (off > 0) {
+        if (is_path_separator(filepath[off])) {
+            break;
+        }
+        --off;
+    }
+
+    if (off == 0 && !is_path_separator(filepath[off])) {
         return str_dup("./");
     }
 
-    u64 off = len - 1;
-    if (is_path_separator(filepath[off])) {
-        return str_dup(filepath);
-    }
-
-    do {
-        if (is_path_separator(filepath[off])) {
-            if (off == len) {
-                return NULL;
-            }
-            break;
-        }
-    } while (--off > 0);
-
-
-
-    return str_substr(filepath, 0, off);
+    return str_substr(filepath, 0, off + 1);
 }
 
 char* get_filename_with_ext(const char* filepath) {
@@ -132,16 +124,18 @@ char* get_filename_with_ext(const char* filepath) {
     }
 
     u64 off = len - 1;
-    do {
+    while (off > 0) {
         if (is_path_separator(filepath[off])) {
-            if (off == len) {
-                return NULL;
-            }
             break;
         }
-    } while (--off > 0);
+        --off;
+    }
 
-    return str_dup(filepath + off + 1);
+    if (is_path_separator(filepath[off])) {
+        return str_dup(filepath + off + 1);
+    }
+
+    return str_dup(filepath + off);
 }
 
 char* get_filename(const char* filepath) {
@@ -166,7 +160,7 @@ char* get_filename(const char* filepath) {
     } while (--off > 0);
 
     char* res = str_substr(filename, 0, off);
-    str_format(filename);
+    str_free(filename);
 
     return res;
 }
@@ -193,7 +187,7 @@ char* get_file_ext(const char* filepath) {
     } while (--off > 0);
 
     char* res = str_dup(filename + off);
-    str_format(filename);
+    str_free(filename);
 
     return res;
 }

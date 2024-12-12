@@ -10,7 +10,9 @@ CFGNode* build_cfg_for_function(CFGContext* ctx, const ASTNode* ast) {
     cfg_context_enter_scope(ctx, CFG_FUNCTION_SCOPE);
 
     const Vector* stmts = &ast->as.funcdef->stmts;
-    build_cfg_for_statements_block(ctx, stmts, &func_entry->as.func_entry->block.first, &func_entry->as.func_entry->block.last);
+    if (build_cfg_for_statements_block(ctx, stmts, &func_entry->as.func_entry->block.first, &func_entry->as.func_entry->block.last)) {
+        return false;
+    }
 
     cfg_context_leave_scope(ctx);
 
@@ -30,8 +32,9 @@ bool build_cfg_for_statements_block(CFGContext* ctx, const Vector* block, CFGNod
     for (u64 i = 0; i < block->items_count; ++i) {
         const ASTNode* stmt = vector_get_ref(block, i);
 
-        build_cfg_for_statement(ctx, stmt, first, last);
-
+        if (!build_cfg_for_statement(ctx, stmt, first, last)) {
+            return false;
+        }
         if ((i + 1 < block->items_count) && (stmt->kind == AST_BREAK_STMT_NODE || stmt->kind == AST_CONTINUE_STMT_NODE)) {
             if (ctx->diag != NULL) {
                 const ASTNode* next_stmt = vector_get_ref(block, i + 1);
@@ -90,7 +93,9 @@ bool prepare_condition_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** f
     cfg_context_enter_scope(ctx, CFG_BASIC_SCOPE);
 
     const Vector* stmts = &ast->as.condition_stmt->then_branch;
-    build_cfg_for_statements_block(ctx, stmts, &condition->as.condition->then_branch.first, &condition->as.condition->then_branch.last);
+    if (!build_cfg_for_statements_block(ctx, stmts, &condition->as.condition->then_branch.first, &condition->as.condition->then_branch.last)) {
+        return false;
+    }
 
     cfg_context_leave_scope(ctx);
 
@@ -98,7 +103,9 @@ bool prepare_condition_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** f
     cfg_context_enter_scope(ctx, CFG_BASIC_SCOPE);
 
     stmts = &ast->as.condition_stmt->else_branch;
-    build_cfg_for_statements_block(ctx, stmts, &condition->as.condition->else_branch.first, &condition->as.condition->else_branch.last);
+    if (!build_cfg_for_statements_block(ctx, stmts, &condition->as.condition->else_branch.first, &condition->as.condition->else_branch.last)) {
+        return false;
+    }
 
     cfg_context_leave_scope(ctx);
 
@@ -126,7 +133,9 @@ bool prepare_while_loop_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** 
     ctx->curr_scope->backedge_node = condition;
 
     const Vector* stmts = &ast->as.while_stmt->stmts;
-    build_cfg_for_statements_block(ctx, stmts, &condition->as.condition->then_branch.first, &condition->as.condition->then_branch.last);
+    if (!build_cfg_for_statements_block(ctx, stmts, &condition->as.condition->then_branch.first, &condition->as.condition->then_branch.last)) {
+        return false;
+    }
 
     // ADD BACKEDGE
     if (condition->as.condition->then_branch.last == NULL) {
@@ -174,8 +183,9 @@ bool prepare_do_loop_cfg_node(CFGContext* ctx, const ASTNode* ast, CFGNode** fir
     ctx->curr_scope->backedge_node = condition;
 
     const Vector* stmts = &ast->as.do_while_stmt->stmts;
-    build_cfg_for_statements_block(ctx, stmts, &loop_entry->as.loop_entry->block.first, &loop_entry->as.loop_entry->block.last);
-
+    if (!build_cfg_for_statements_block(ctx, stmts, &loop_entry->as.loop_entry->block.first, &loop_entry->as.loop_entry->block.last)) {
+        return false;
+    }
 
     // ADD BACKEDGE
     CFGNode* backedge = cfg_context_create_cfg_node(ctx, CFG_BACKEDGE_NODE);

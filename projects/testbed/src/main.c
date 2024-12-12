@@ -126,9 +126,15 @@ int main(int argc, char** argv) {
                 }
             }
 
+            printf("\ndirpath: %s\n", dirpath);
+            printf("filename: %s\n\n", filename);
+
             char* output_filepath_tmp = options.output_dir == NULL
-                ? str_format("%s//%s", dirpath, filename)
-                : str_format("%s//%s", options.output_dir, filename);
+                ? str_format("%s%s", dirpath, filename)
+                : str_format("%s/%s", options.output_dir, filename);
+
+            str_free(dirpath);
+            str_free(filename);
 
             for (u64 j = 0; j < ast_functions.items_count; ++j) {
                 const ASTNode* funcdef = vector_get_ref(&ast_functions, j);
@@ -138,6 +144,7 @@ int main(int argc, char** argv) {
                 CFGNode* func_entry = build_cfg_for_function(cfg_context, funcdef);
 
                 if (func_entry == NULL) {
+                    cfg_context_free(cfg_context);
                     continue;
                 }
 
