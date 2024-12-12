@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "vanec/utils/string_utils.h"
+
 Token token_create(const TokenKind kind, char* value, const SourceLoc loc) {
 	return (Token) {
 		.kind = kind,
@@ -30,5 +32,29 @@ void token_free(Token* token) {
 }
 
 char* token_to_str(const Token* token) {
-    return NULL;
+    if (token == NULL) {
+        return NULL;
+    }
+    if (is_token_kind_a_punctuator(token->kind)) {
+        return str_format("punct(\'%s\')", get_token_kind_value(token->kind));
+    }
+    else if (is_token_kind_a_literal(token->kind)) {
+        if (token->kind == TOKEN_STRING_LITERAL) {
+            return str_format("literal(\"%s\")", token->value);
+        }
+        else if (token->kind == TOKEN_CHAR_LITERAL) {
+            return str_format("literal(\'%s\')", token->value);
+        }
+        return str_format("literal(%s)", token->value);
+    }
+    else if (is_token_kind_a_keyword(token->kind)) {
+        return str_format("keyword(%s)", get_token_kind_value(token->kind));
+    }
+    else if (token->kind == TOKEN_IDENTIFIER) {
+        return str_format("identifier(%s)", token->value);
+    }
+    else if (token->kind == TOKEN_UNKNOWN) {
+        return str_format("unknown(%s)", get_token_kind_value(token->kind));
+    }
+    return str_format("misc(%s)", get_token_kind_spelling(token->kind));
 }

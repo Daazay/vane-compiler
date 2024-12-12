@@ -3,7 +3,7 @@
 #include "vanec/utils/vector.h"
 
 #include "vanec/diagnostic/diagnostic_id.h"
-#include "vanec/utils/source_loc.h"
+#include "vanec/diagnostic/source_loc.h"
 
 typedef struct {
     DiagnosticId id;
@@ -19,7 +19,7 @@ DiagnosticMsg* diagnostic_msg_create(const DiagnosticId id, char* msg, const Sou
 
 void diagnostic_msg_free(DiagnosticMsg* msg);
 
-DiagnosticEngine diagnostic_engine_create();
+DiagnosticEngine* diagnostic_engine_create();
 
 void diagnostic_engine_clear(DiagnosticEngine* diag);
 

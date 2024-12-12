@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vanec/utils/vector.h"
-#include "vanec/utils/source_loc.h"
+#include "vanec/diagnostic/source_loc.h"
 #include "vanec/frontend/ast/ast_node_kind.h"
 #include "vanec/frontend/lexer/token.h"
 

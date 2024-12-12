@@ -6,26 +6,27 @@
 #include "vanec/utils/string_utils.h"
 #include "vanec/utils/string_builder.h"
 
-Lexer lexer_create(Stream* stream, const u64 chunk_capacity, DiagnosticEngine* diag) {
-    assert(stream != NULL);
+Lexer* lexer_create(const u64 chunk_capacity, DiagnosticEngine* diag) {
+    assert(chunk_capacity >= MIN_STREAM_CHUNK_CAPACITY && chunk_capacity <= MAX_STREAM_CHUNK_CAPACITY);
 
-    return (Lexer) {
-        .stream = stream,
-        .chunk = stream_chunk_create(chunk_capacity),
-        .chunk_pos = 0,
-        .loc = {
-            .filepath = (stream->kind == STREAM_STRING)
-                ? stream->source.string
-                : stream->source.file.filepath,
-            .start.pos = 0,
-            .start.row = DEFAULT_ROW_INDEX,
-            .start.col = DEFAULT_COL_INDEX,
-            .end.pos = 0,
-            .end.row = DEFAULT_ROW_INDEX,
-            .end.col = DEFAULT_COL_INDEX,
-        },
+    Lexer* lexer = malloc(sizeof(Lexer));
+    assert(lexer != NULL);
+
+    void* buf = malloc(chunk_capacity);
+    assert(buf != NULL);
+
+    *lexer = (Lexer) {
+        .stream = NULL,
         .diag = diag,
+        .chunk.buf = buf,
+        .chunk.cap = chunk_capacity,
+        .chunk.pos = 0,
+        .chunk.size = 0,
+        .chunk.last = false,
+        .loc = { 0 },
     };
+
+    return lexer;
 }
 
 void lexer_free(Lexer* lexer) {
@@ -33,11 +34,30 @@ void lexer_free(Lexer* lexer) {
         return;
     }
 
-    stream_chunk_free(&lexer->chunk);
-    
-    lexer->stream = NULL;
-    lexer->chunk_pos = 0;
-    lexer->diag = NULL;
+    free(lexer->chunk.buf);
+    free(lexer);
+}
+
+void lexer_set_source_stream(Lexer* lexer, Stream* stream) {
+    assert(lexer != NULL && stream != NULL && stream->kind != STREAM_UNKNOWN_SOURCE);
+
+    lexer->stream = stream;
+
+    lexer->chunk.pos = 0;
+    lexer->chunk.size = 0;
+    lexer->chunk.last = false;
+
+    lexer->loc = (SourceLoc){
+        .filepath = (stream->kind == STREAM_STRING_SOURCE)
+            ? stream->source.string
+            : stream->source.file.filepath,
+        .start.pos = 0,
+        .start.row = DEFAULT_ROW_INDEX,
+        .start.col = DEFAULT_COL_INDEX,
+        .end.pos = 0,
+        .end.row = DEFAULT_ROW_INDEX,
+        .end.col = DEFAULT_COL_INDEX,
+    };
 }
 
 void lexer_rewind(Lexer* lexer) {
@@ -47,8 +67,7 @@ void lexer_rewind(Lexer* lexer) {
 
     stream_rewind(lexer->stream);
 
-    lexer->chunk_pos = 0;
-    lexer->chunk.eof = false;
+    lexer->chunk.pos = 0;
     lexer->chunk.size = 0;
 
     lexer->loc.filepath = lexer->stream->source.file.filepath;
@@ -62,31 +81,35 @@ void lexer_rewind(Lexer* lexer) {
     lexer->loc.end.col = DEFAULT_COL_INDEX;
 }
 
-static char get_curr_char_from_stream(Lexer* lexer) {
+static inline char get_curr_char_from_stream(Lexer* lexer) {
     assert(lexer != NULL);
 
-    if (lexer->chunk_pos >= lexer->chunk.size) {
-        if (lexer->chunk.eof) {
+    if (lexer->chunk.pos >= lexer->chunk.size) {
+        if (lexer->chunk.last) {
             return '\0';
         }
-        stream_read_next_chunk(lexer->stream, &lexer->chunk);
-        lexer->chunk_pos = 0;
+        lexer->chunk.last = stream_read_next_chunk(lexer->stream, lexer->chunk.buf, lexer->chunk.cap, &lexer->chunk.size);
+        lexer->chunk.pos = 0;
     }
 
     if (lexer->chunk.size == 0) {
         return '\0';
     }
 
-    return lexer->chunk.data[lexer->chunk_pos];
+    const u8* data = (u8*)lexer->chunk.buf;
+    return data[lexer->chunk.pos];
 }
 
 static char consume_char(Lexer* lexer) {
     assert(lexer != NULL);
 
     char ch = get_curr_char_from_stream(lexer);
-    ++lexer->chunk_pos;
-    ++lexer->loc.end.col;
-    ++lexer->loc.end.pos;
+
+    if (ch != '\0') {
+        ++lexer->chunk.pos;
+        ++lexer->loc.end.col;
+        ++lexer->loc.end.pos;
+    }
 
     return ch;
 }
@@ -107,7 +130,7 @@ static void skip_whitespaces(Lexer* lexer) {
     char ch = '\0';
     while ((ch = get_curr_char_from_stream(lexer)) != '\0') {
         if (ch == '\r') {
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
             ++lexer->loc.end.row;
             lexer->loc.end.col = DEFAULT_COL_INDEX;
@@ -116,7 +139,7 @@ static void skip_whitespaces(Lexer* lexer) {
             continue;
         }
         else if (ch == '\n') {
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
 
             if (!has_r) {
@@ -208,7 +231,7 @@ static void skip_single_line_comment(Lexer* lexer) {
                 break;
             }
 
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
             ++lexer->loc.end.row;
             lexer->loc.end.col = DEFAULT_COL_INDEX;
@@ -222,7 +245,7 @@ static void skip_single_line_comment(Lexer* lexer) {
                 break;
             }
 
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
 
             if (!has_r) {
@@ -258,7 +281,7 @@ static bool skip_multi_line_comment(Lexer* lexer) {
             continue;
         }
         else if (ch == '\r') {
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
             ++lexer->loc.end.row;
             lexer->loc.end.col = DEFAULT_COL_INDEX;
@@ -268,7 +291,7 @@ static bool skip_multi_line_comment(Lexer* lexer) {
             continue;
         }
         else if (ch == '\n') {
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
 
             if (!has_r) {
@@ -331,7 +354,7 @@ Token lexer_parse_string_literal(Lexer* lexer) {
 
             string_builder_append_char_right(&sb, ch);
             
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
             ++lexer->loc.end.row;
             lexer->loc.end.col = DEFAULT_COL_INDEX;
@@ -347,7 +370,7 @@ Token lexer_parse_string_literal(Lexer* lexer) {
 
             string_builder_append_char_right(&sb, ch);
 
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
 
             if (!has_r) {
@@ -414,7 +437,7 @@ Token lexer_parse_char_literal(Lexer* lexer) {
 
             string_builder_append_char_right(&sb, ch);
 
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
             ++lexer->loc.end.row;
             lexer->loc.end.col = DEFAULT_COL_INDEX;
@@ -430,7 +453,7 @@ Token lexer_parse_char_literal(Lexer* lexer) {
 
             string_builder_append_char_right(&sb, ch);
 
-            ++lexer->chunk_pos;
+            ++lexer->chunk.pos;
             ++lexer->loc.end.pos;
 
             if (!has_r) {

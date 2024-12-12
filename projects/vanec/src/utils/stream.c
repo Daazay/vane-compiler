@@ -4,146 +4,154 @@
 #include <string.h>
 #include <stdlib.h>
 
-StreamChunk stream_chunk_create(const u64 chunk_capacity) {
-    assert(chunk_capacity >= MIN_STREAM_CHUNK_CAPACITY && chunk_capacity <= MAX_STREAM_CHUNK_CAPACITY);
+Stream* stream_create() {
+    Stream* stream = malloc(sizeof(Stream));
+    assert(stream != NULL);
 
-    u8* data = malloc(chunk_capacity);
-    assert(data != NULL);
-    
-    return (StreamChunk) {
-        .capacity = chunk_capacity,
-        .size = 0,
-        .data = data,
-        .eof = false,
-    };
-}
-
-void stream_chunk_free(StreamChunk* chunk) {
-    if (chunk == NULL) {
-        return;
-    }
-
-    free(chunk->data);
-
-    chunk->capacity = 0;
-    chunk->size = 0;
-    chunk->data = NULL;
-    chunk->eof = false;
-}
-
-Stream stream_create(const StreamKind kind) {
-    return (Stream) {
-        .kind = kind,
+    *stream = (Stream) {
+        .kind = STREAM_UNKNOWN_SOURCE,
         .offset = 0,
-        .size = 0,
+        .len = 0,
+        .done = false,
         .source.file.filepath = NULL,
         .source.file.handle = NULL,
     };
+
+    return stream;
 }
 
 void stream_free(Stream* stream) {
     if (stream == NULL) {
         return;
     }
-
-    stream->kind = STREAM_UNKNOWN;
-    stream->size = 0;
-    stream->offset = 0;
-
-    if (stream->kind == STREAM_STRING) {
-        stream->source.string = NULL;
-    }
-    else if (stream->kind == STREAM_FILE) {
-        stream->source.file.filepath = NULL;
-
+    
+    if (stream->kind == STREAM_FILE_SOURCE) {
         if (stream->source.file.handle != NULL) {
             fclose(stream->source.file.handle);
-            stream->source.file.handle = NULL;
         }
     }
+
+    free(stream);
 }
 
-bool stream_set_source(Stream* stream, const char* str) {
-    assert(stream != NULL);
-    assert(stream->kind != STREAM_UNKNOWN);
+static inline void stream_set_string_source(Stream* stream, const char* string) {
+    assert(stream != NULL && string != NULL);
 
     stream->offset = 0;
-    
-    if (stream->kind == STREAM_STRING) {
-        stream->size = strlen(str);
-        stream->source.string = str;
-    }
-    else if (stream->kind == STREAM_FILE) {
-        // close previos if open
-        if (stream->source.file.handle != NULL) {
-            fclose(stream->source.file.handle);
-        }
-        
-        stream->source.file.handle = NULL;
-        i32 res = fopen_s(&stream->source.file.handle, str, "rb");
+    stream->kind = STREAM_STRING_SOURCE;
+    stream->done = false;
 
-        if (res != 0 || stream->source.file.handle == NULL) {
-            return false;
-        }
+    stream->len = strlen(string);
+    stream->source.string = string;
+}
 
-        fseek(stream->source.file.handle, 0, SEEK_END);
-        stream->size = ftell(stream->source.file.handle);
-        rewind(stream->source.file.handle);
+static inline bool stream_set_file_source(Stream* stream, const char* filepath) {
+    assert(stream != NULL && filepath != NULL);
 
-        stream->source.file.filepath = str;
+    stream->offset = 0;
+    stream->kind = STREAM_FILE_SOURCE;
+    stream->done = false;
+
+    stream->source.file.handle = NULL;
+    i32 res = fopen_s(&stream->source.file.handle, filepath, "rb");
+
+    if (res != 0 || stream->source.file.handle == NULL) {
+        return false;
     }
 
-    stream_rewind(stream);
+    fseek(stream->source.file.handle, 0, SEEK_END);
+    stream->len = ftell(stream->source.file.handle);
+    rewind(stream->source.file.handle);
+
+    stream->source.file.filepath = filepath;
 
     return true;
 }
 
+bool stream_set_source(Stream* stream, const StreamSourceKind kind, const char* filepath) {
+    assert(stream != NULL && kind != STREAM_UNKNOWN_SOURCE && filepath != NULL);
+    
+    if (kind == STREAM_STRING_SOURCE) {
+        stream_set_string_source(stream, filepath);
+        return true;
+    }
+    else if (kind == STREAM_FILE_SOURCE) {
+        return stream_set_file_source(stream, filepath);
+    }
+
+    return false;
+}
+
+void stream_close(Stream* stream) {
+    assert(stream != NULL);
+
+    stream->done = false;
+    stream->len = 0;
+    stream->offset = 0;
+
+    if (stream->kind == STREAM_STRING_SOURCE) {
+        stream->source.string = NULL;
+    }
+    else if (stream->kind == STREAM_FILE_SOURCE) {
+        stream->source.file.filepath = NULL;
+        if (stream->source.file.handle != NULL) {
+            fclose(stream->source.file.handle);
+        }
+    }
+
+    stream->kind = STREAM_UNKNOWN_SOURCE;
+}
+
 void stream_rewind(Stream* stream) {
     assert(stream != NULL);
-    assert(stream->kind != STREAM_UNKNOWN);
+    assert(stream->kind != STREAM_UNKNOWN_SOURCE);
 
     stream->offset = 0;
-    
-    if (stream->kind == STREAM_FILE) {
+    stream->done = false;
+
+    if (stream->kind == STREAM_FILE_SOURCE) {
         assert(stream->source.file.handle != NULL);
         rewind(stream->source.file.handle);
     }
 }
 
-void stream_read_next_chunk(Stream* stream, StreamChunk* chunk) {
-    assert(stream != NULL);
-    assert(stream->kind != STREAM_UNKNOWN);
-    assert(chunk != NULL);
-    assert(chunk->data != NULL);
+bool stream_read_next_chunk(Stream* stream, void* buf, const u64 cap, u64* len) {
+    assert(stream != NULL && buf != NULL && cap != 0 && len != NULL);
+    assert(stream->kind != STREAM_UNKNOWN_SOURCE);
 
-    if (stream->kind == STREAM_STRING) {
+    if (stream->done) {
+        return false;
+    }
+
+    if (stream->kind == STREAM_STRING_SOURCE) {
         assert(stream->source.string != NULL);
 
-        if (stream->size > (stream->offset + chunk->capacity)) {
-            chunk->size = chunk->capacity;
-            chunk->eof = false;
+        if (stream->len > (stream->offset + cap)) {
+            *len = cap;
         }
         else {
-            chunk->size = stream->size - stream->offset;
-            chunk->eof = true;
+            *len = stream->len - stream->offset;
+            stream->done = true;
         }
 
-        memcpy(chunk->data, stream->source.string + stream->offset, chunk->size);
-        stream->offset = stream->offset + chunk->size;
+        memcpy(buf, stream->source.string + stream->offset, *len);
+        stream->offset = stream->offset + *len;
+
+        return stream->done;
     }
-    else if (stream->kind == STREAM_FILE) {
+    else if (stream->kind == STREAM_FILE_SOURCE) {
         assert(stream->source.file.handle != NULL);
 
-        if (chunk->eof == true) {
-            return;
-        }
-
-        chunk->size = fread_s(chunk->data, chunk->capacity, sizeof(u8), chunk->capacity, stream->source.file.handle);
+        *len = fread_s(buf, cap, sizeof(u8), cap, stream->source.file.handle);
 
         i32 err = ferror(stream->source.file.handle);
-        assert(chunk->size == chunk->capacity || err == 0);
+        assert(*len == cap || err == 0);
 
-        chunk->eof = (bool)feof(stream->source.file.handle);
-        stream->offset = stream->offset + chunk->size;
+        stream->done = (bool)feof(stream->source.file.handle);
+        stream->offset = stream->offset + *len;
+
+        return stream->done;
     }
+
+    return false;
 }

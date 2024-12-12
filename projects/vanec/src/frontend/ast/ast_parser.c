@@ -6,13 +6,18 @@
 #include "vanec/utils/string_builder.h"
 #include "vanec/utils/string_utils.h"
 
-ASTParser ast_parser_create(Lexer* lexer, DiagnosticEngine* diag) {
+ASTParser* ast_parser_create(Lexer* lexer, DiagnosticEngine* diag) {
     assert(lexer != NULL);
 
-    return (ASTParser) {
+    ASTParser* ast_parser = malloc(sizeof(ASTParser));
+    assert(ast_parser != NULL);
+
+    *ast_parser = (ASTParser) {
         .ts = token_stream_create(lexer),
         .diag = diag,
     };
+
+    return ast_parser;
 }
 
 void ast_parser_free(ASTParser* parser) {
@@ -22,6 +27,8 @@ void ast_parser_free(ASTParser* parser) {
 
     token_stream_free(&parser->ts);
     parser->diag = NULL;
+
+    free(parser);
 }
 
 void ast_parser_clear(ASTParser* parser) {

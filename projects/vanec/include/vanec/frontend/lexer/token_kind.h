@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vanec/utils/source_loc.h"
+#include "vanec/diagnostic/source_loc.h"
 
 typedef enum {
 #define TOKEN(ID, NAME, VALUE) TOKEN_##ID,

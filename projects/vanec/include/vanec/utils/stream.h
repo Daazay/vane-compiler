@@ -5,23 +5,17 @@
 #include "vanec/utils/defines.h"
 
 typedef enum {
-    STREAM_UNKNOWN= 0,
-    STREAM_STRING,
-    STREAM_FILE,
-} StreamKind;
+    STREAM_UNKNOWN_SOURCE = 0,
+    STREAM_STRING_SOURCE  = 1,
+    STREAM_FILE_SOURCE    = 2,
+} StreamSourceKind;
 
 typedef struct {
-    u8* data;
-    u64 size;
-    u64 capacity;
-    bool eof;
-} StreamChunk;
+    StreamSourceKind kind;
 
-typedef struct {
-    StreamKind kind;
-
-    u64 size;
+    u64 len;
     u64 offset;
+    bool done;
 
     union Source {
         const char* string;
@@ -32,20 +26,14 @@ typedef struct {
     } source;
 } Stream;
 
-StreamChunk stream_chunk_create(const u64 chunk_capacity);
-
-void stream_chunk_free(StreamChunk* chunk);
-
-Stream stream_create(const StreamKind kind);
+Stream* stream_create();
 
 void stream_free(Stream* stream);
 
-/*
-  STRING_STREAM:  str => source.string
-  FILE_STREAM:    str => source.file.filepath
-*/
-bool stream_set_source(Stream* stream, const char* str);
+bool stream_set_source(Stream* stream, const StreamSourceKind kind, const char* filepath);
+
+void stream_close(Stream* stream);
 
 void stream_rewind(Stream* stream);
 
-void stream_read_next_chunk(Stream* stream, StreamChunk* chunk);
+bool stream_read_next_chunk(Stream* stream, void* buf, const u64 cap, u64* len);

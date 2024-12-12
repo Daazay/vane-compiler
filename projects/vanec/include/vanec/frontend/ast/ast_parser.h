@@ -10,7 +10,7 @@ typedef struct {
     DiagnosticEngine* diag;
 } ASTParser;
 
-ASTParser ast_parser_create(Lexer* lexer, DiagnosticEngine* diag);
+ASTParser* ast_parser_create(Lexer* lexer, DiagnosticEngine* diag);
 
 void ast_parser_free(ASTParser* parser);
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "vanec/utils/defines.h"
-#include "vanec/utils/source_loc.h"
 #include "vanec/frontend/lexer/token_kind.h"
+#include "vanec/diagnostic/source_loc.h"
 
 typedef struct {
     TokenKind kind;

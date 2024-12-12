@@ -25,10 +25,15 @@ void diagnostic_msg_free(DiagnosticMsg* msg) {
     free(msg);
 }
 
-DiagnosticEngine diagnostic_engine_create() {
-    return (DiagnosticEngine) {
+DiagnosticEngine* diagnostic_engine_create() {
+    DiagnosticEngine* engine = malloc(sizeof(DiagnosticEngine));
+    assert(engine != NULL);
+
+    *engine = (DiagnosticEngine) {
         .msgs = vector_create(DEFAULT_VECTOR_CAPACITY, sizeof(DiagnosticMsg*), &diagnostic_msg_free, true),
     };
+
+    return engine;
 }
 
 void diagnostic_engine_clear(DiagnosticEngine* diag) {
@@ -43,6 +48,7 @@ void diagnostic_engine_free(DiagnosticEngine* diag) {
         return;
     }
     vector_free(&diag->msgs);
+    free(diag);
 }
 
 void diagnostic_engine_report(DiagnosticEngine* diag, const DiagnosticId id, const SourceLoc loc, ...) {
