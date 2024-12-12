@@ -84,6 +84,7 @@ bool is_token_kind_a_keyword(const TokenKind kind) {
         kind == TOKEN_UNTIL_KEYWORD ||
         kind == TOKEN_BREAK_KEYWORD ||
         kind == TOKEN_CONTINUE_KEYWORD ||
+        kind == TOKEN_RETURN_KEYWORD ||
         is_token_kind_a_builtin(kind);
 }
 

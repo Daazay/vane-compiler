@@ -88,6 +88,7 @@ KEYWORD_TOKEN(LOOP,                   "loop")
 KEYWORD_TOKEN(UNTIL,                  "until")
 KEYWORD_TOKEN(BREAK,                  "break")
 KEYWORD_TOKEN(CONTINUE,               "continue")
+KEYWORD_TOKEN(RETURN,                "return")
 
 BUILTIN_TOKEN(BOOL,                   "bool")
 BUILTIN_TOKEN(BYTE,                   "byte")

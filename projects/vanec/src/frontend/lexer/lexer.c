@@ -776,6 +776,7 @@ if (str_eq(value, keyword)) {                       \
         else RETURN_IF_KEYWORD("until", TOKEN_UNTIL_KEYWORD)
         else RETURN_IF_KEYWORD("break", TOKEN_BREAK_KEYWORD)
         else RETURN_IF_KEYWORD("continue", TOKEN_CONTINUE_KEYWORD)
+        else RETURN_IF_KEYWORD("return", TOKEN_RETURN_KEYWORD)
         // builtins 
         else RETURN_IF_KEYWORD("bool", TOKEN_BOOL_BUILTIN)
         else RETURN_IF_KEYWORD("byte", TOKEN_BYTE_BUILTIN)

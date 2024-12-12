@@ -378,6 +378,7 @@ ASTNode* ast_parser_parse_ast_statement_node(ASTParser* parser) {
     case TOKEN_DO_KEYWORD:          return ast_parser_parse_ast_do_while_stmt_node(parser);
     case TOKEN_BREAK_KEYWORD:       return ast_parser_parse_ast_break_stmt_node(parser);
     case TOKEN_CONTINUE_KEYWORD:    return ast_parser_parse_ast_continue_stmt_node(parser);
+    case TOKEN_RETURN_KEYWORD:      return ast_parser_parse_ast_return_stmt_node(parser);
         /* EXPRESSION STATEMENT */
     case TOKEN_PLUS:                return ast_parser_parse_ast_expression_stmt_node(parser);
     case TOKEN_PLUS_PLUS:           return ast_parser_parse_ast_expression_stmt_node(parser);
@@ -399,7 +400,7 @@ ASTNode* ast_parser_parse_ast_statement_node(ASTParser* parser) {
         EXPECT_NEXT(false, true, 
             /* STATEMENT */
             TOKEN_DIM_KEYWORD, TOKEN_IF_KEYWORD, TOKEN_WHILE_KEYWORD, 
-            TOKEN_DO_KEYWORD, TOKEN_BREAK_KEYWORD, TOKEN_CONTINUE_KEYWORD,
+            TOKEN_DO_KEYWORD, TOKEN_BREAK_KEYWORD, TOKEN_CONTINUE_KEYWORD, TOKEN_RETURN_KEYWORD,
             /* EXPRESSION */
             TOKEN_PLUS, TOKEN_PLUS_PLUS, TOKEN_MINUS, TOKEN_MINUS_MINUS,
             TOKEN_EXCLAIM, TOKEN_TILDE, TOKEN_L_BRACE, TOKEN_STRING_LITERAL,
@@ -1027,6 +1028,36 @@ ASTNode* ast_parser_parse_ast_expression_stmt_node(ASTParser* parser) {
     stmt->loc = expr->loc;
     stmt->loc.end = token->loc.end;
     stmt->as.expression_stmt->expr = expr;
+
+    return stmt;
+}
+
+ASTNode* ast_parser_parse_ast_return_stmt_node(ASTParser* parser) {
+    assert(parser != NULL);
+
+    const Token* token = EXPECT_NEXT(true, true, TOKEN_RETURN_KEYWORD);
+    if (token == NULL) {
+        return NULL;
+    }
+
+    SourceLoc loc = token->loc;
+
+    ASTNode* expr = ast_parser_parse_ast_expression_node(parser, PREC_NONE);
+    if (expr == NULL) {
+        return NULL;
+    }
+
+    token = EXPECT_NEXT(true, true, TOKEN_SEMICOLON);
+    if (token == NULL) {
+        ast_node_free(expr);
+        return NULL;
+    }
+
+    ASTNode* stmt = ast_node_create(AST_RETURN_STMT_NODE);
+
+    stmt->loc = loc;
+    stmt->loc.end = token->loc.end;
+    stmt->as.return_stmt->expr = expr;
 
     return stmt;
 }

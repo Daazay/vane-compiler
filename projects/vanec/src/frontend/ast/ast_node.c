@@ -29,6 +29,7 @@ ASTNode* ast_node_create(const ASTNodeKind kind) {
     case AST_CONTINUE_STMT_NODE: {
         /* DO NOTHING */ } break;
     case AST_EXPRESSION_STMT_NODE: { ALLOC_AST_NODE_DATA(node->as.expression_stmt, struct ASTExpressionStmtData); } break;
+    case AST_RETURN_STMT_NODE: { ALLOC_AST_NODE_DATA(node->as.return_stmt, struct ASTExpressionStmtData); } break;
     case AST_BINARY_EXPR_NODE: { ALLOC_AST_NODE_DATA(node->as.binary_expr, struct ASTBinaryExprData); } break;
     case AST_UNARY_EXPR_NODE: { ALLOC_AST_NODE_DATA(node->as.unary_expr, struct ASTUnaryExprData); } break;
     case AST_BRACES_EXPR_NODE: { ALLOC_AST_NODE_DATA(node->as.braces_expr, struct ASTBracesExprData); } break;
@@ -112,6 +113,10 @@ void ast_node_free(ASTNode* node) {
     case AST_EXPRESSION_STMT_NODE: {
         ast_node_free(node->as.expression_stmt->expr);
         free(node->as.expression_stmt);
+    } break;
+    case AST_RETURN_STMT_NODE: {
+        ast_node_free(node->as.return_stmt->expr);
+        free(node->as.return_stmt);
     } break;
     case AST_BINARY_EXPR_NODE: {
         free(node->as.binary_expr->op);
