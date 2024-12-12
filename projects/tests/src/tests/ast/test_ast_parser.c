@@ -3,21 +3,21 @@
 #include "vanec/frontend/ast/ast_parser.h"
 
 struct ASTParserFixture {
-    Stream ss;
-    Lexer lexer;
-    ASTParser parser;
+    Stream* ss;
+    Lexer* lexer;
+    ASTParser* parser;
 };
 
 UTEST_F_SETUP(ASTParserFixture) {
-    utest_fixture->ss = stream_create(STREAM_STRING);
-    utest_fixture->lexer = lexer_create(&utest_fixture->ss, MIN_STREAM_CHUNK_CAPACITY, NULL);
-    utest_fixture->parser = ast_parser_create(&utest_fixture->lexer, NULL);
+    utest_fixture->ss = stream_create();
+    utest_fixture->lexer = lexer_create(MIN_STREAM_CHUNK_CAPACITY, NULL);
+    utest_fixture->parser = ast_parser_create(utest_fixture->lexer, NULL);
 }
 
 UTEST_F_TEARDOWN(ASTParserFixture) {
-    ast_parser_free(&utest_fixture->parser);
-    lexer_free(&utest_fixture->lexer);
-    stream_free(&utest_fixture->ss);
+    ast_parser_free(utest_fixture->parser);
+    lexer_free(utest_fixture->lexer);
+    stream_free(utest_fixture->ss);
 }
 
 #pragma region DEFINES
@@ -63,9 +63,10 @@ ASSERT_IDENTIFIER(node->as.place_expr->id, val)
 
 UTEST_F(ASTParserFixture, identifier1) {
     const char* source = "identifier";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_identifier_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_identifier_node(utest_fixture->parser);
 
     ASSERT_IDENTIFIER(node, source);
 
@@ -74,18 +75,20 @@ UTEST_F(ASTParserFixture, identifier1) {
 
 UTEST_F(ASTParserFixture, identifier2) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_identifier_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_identifier_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, builtin_typeref1) {
     const char* source = "ulong";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_BUILTIN_TYPEREF(node, source);
 
@@ -94,9 +97,10 @@ UTEST_F(ASTParserFixture, builtin_typeref1) {
 
 UTEST_F(ASTParserFixture, builtin_typeref2) {
     const char* source = "int (";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_BUILTIN_TYPEREF(node, "int");
 
@@ -105,18 +109,20 @@ UTEST_F(ASTParserFixture, builtin_typeref2) {
 
 UTEST_F(ASTParserFixture, builtin_typeref3) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, custom_typeref1) {
     const char* source = "custom";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_CUSTOM_TYPEREF(node, source);
 
@@ -125,9 +131,10 @@ UTEST_F(ASTParserFixture, custom_typeref1) {
 
 UTEST_F(ASTParserFixture, custom_typeref2) {
     const char* source = "custom (";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_CUSTOM_TYPEREF(node, "custom");
 
@@ -136,18 +143,20 @@ UTEST_F(ASTParserFixture, custom_typeref2) {
 
 UTEST_F(ASTParserFixture, custom_typeref3) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, array_typeref1) {
     const char* source = "int()";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_BUILTIN_ARRAY_TYPEREF(node, 1, "int");
 
@@ -156,9 +165,10 @@ UTEST_F(ASTParserFixture, array_typeref1) {
 
 UTEST_F(ASTParserFixture, array_typeref2) {
     const char* source = "arr(,,,)";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_CUSTOM_ARRAY_TYPEREF(node, 4, "arr");
 
@@ -167,9 +177,10 @@ UTEST_F(ASTParserFixture, array_typeref2) {
 
 UTEST_F(ASTParserFixture, array_typeref3) {
     const char* source = "string(,)(,,)";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_ARRAY_TYPEREF_NODE);
@@ -185,9 +196,10 @@ UTEST_F(ASTParserFixture, array_typeref3) {
 
 UTEST_F(ASTParserFixture, array_typeref4) {
     const char* source = "arr()(";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_CUSTOM_ARRAY_TYPEREF(node, 1, "arr");
 
@@ -196,18 +208,20 @@ UTEST_F(ASTParserFixture, array_typeref4) {
 
 UTEST_F(ASTParserFixture, array_typeref5) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_typeref_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_typeref_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, argdef1) {
     const char* source = "a";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_argdef_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_argdef_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_ARGDEF_NODE);
@@ -221,9 +235,10 @@ UTEST_F(ASTParserFixture, argdef1) {
 
 UTEST_F(ASTParserFixture, argdef2) {
     const char* source = "a as int";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_argdef_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_argdef_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_ARGDEF_NODE);
@@ -237,18 +252,20 @@ UTEST_F(ASTParserFixture, argdef2) {
 
 UTEST_F(ASTParserFixture, argdef3) {
     const char* source = "a as";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_argdef_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_argdef_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, funcsign1) {
     const char* source = "main()";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_FUNCSIGN_NODE);
@@ -266,9 +283,10 @@ UTEST_F(ASTParserFixture, funcsign1) {
 
 UTEST_F(ASTParserFixture, funcsign2) {
     const char* source = "main(a, b)";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
     ASSERT_EQ(node->kind, AST_FUNCSIGN_NODE);
 
     ASSERT_NE(node, NULL);
@@ -297,9 +315,10 @@ UTEST_F(ASTParserFixture, funcsign2) {
 
 UTEST_F(ASTParserFixture, funcsign3) {
     const char* source = "main(a as int, b as arr())";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_FUNCSIGN_NODE);
@@ -328,9 +347,10 @@ UTEST_F(ASTParserFixture, funcsign3) {
 
 UTEST_F(ASTParserFixture, funcsign4) {
     const char* source = "main() as int";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_FUNCSIGN_NODE);
@@ -348,36 +368,40 @@ UTEST_F(ASTParserFixture, funcsign4) {
 
 UTEST_F(ASTParserFixture, funcsign5) {
     const char* source = "main() as ";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, funcsign6) {
     const char* source = "main(a, )";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, funcsign7) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_funcsign_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_funcsign_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, vardecl1) {
     const char* source = "dim a as int";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_VARDECL_STMT_NODE);
@@ -398,9 +422,10 @@ UTEST_F(ASTParserFixture, vardecl1) {
 
 UTEST_F(ASTParserFixture, vardecl2) {
     const char* source = "dim a, b as int";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_VARDECL_STMT_NODE);
@@ -423,36 +448,40 @@ UTEST_F(ASTParserFixture, vardecl2) {
 
 UTEST_F(ASTParserFixture, vardecl3) {
     const char* source = "dim a as";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, vardecl4) {
     const char* source = "dim a, as int";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, vardecl5) {
     const char* source = "dim as int";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_vardecl_stmt_node(utest_fixture->parser);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, string_literal1) {
     const char* source = "\"fox\"";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_STRING_LITERAL_NODE, "fox");
@@ -462,18 +491,20 @@ UTEST_F(ASTParserFixture, string_literal1) {
 
 UTEST_F(ASTParserFixture, string_literal2) {
     const char* source = "\"fox";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, char_literal1) {
     const char* source = "\'a\'";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_CHAR_LITERAL_NODE, "a");
@@ -483,45 +514,50 @@ UTEST_F(ASTParserFixture, char_literal1) {
 
 UTEST_F(ASTParserFixture, char_literal2) {
     const char* source = "\'a";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, char_literal3) {
     const char* source = "\'\'";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, char_literal4) {
     const char* source = "\'abcdefg\'";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, char_literal5) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, dec_literal1) {
     const char* source = "12345";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_DEC_LITERAL_NODE, "12345");
@@ -531,18 +567,20 @@ UTEST_F(ASTParserFixture, dec_literal1) {
 
 UTEST_F(ASTParserFixture, dec_literal2) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, hex_literal1) {
     const char* source = "0x12FF";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_HEX_LITERAL_NODE, "0x12FF");
@@ -552,36 +590,40 @@ UTEST_F(ASTParserFixture, hex_literal1) {
 
 UTEST_F(ASTParserFixture, hex_literal2) {
     const char* source = "0x12FFU";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, hex_literal3) {
     const char* source = "0x";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, hex_literal4) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, oct_literal1) {
     const char* source = "0123";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_OCT_LITERAL_NODE, "0123");
@@ -591,27 +633,30 @@ UTEST_F(ASTParserFixture, oct_literal1) {
 
 UTEST_F(ASTParserFixture, oct_literal2) {
     const char* source = "01238";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, oct_literal3) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, bits_literal1) {
     const char* source = "0b1001";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_BITS_LITERAL_NODE, "0b1001");
@@ -621,36 +666,40 @@ UTEST_F(ASTParserFixture, bits_literal1) {
 
 UTEST_F(ASTParserFixture, bits_literal2) {
     const char* source = "0b10013";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, bits_literal3) {
     const char* source = "0b";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, bits_literal4) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, bool_literal1) {
     const char* source = "true";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_LITERAL(node, AST_BOOL_LITERAL_NODE, "true");
@@ -660,18 +709,20 @@ UTEST_F(ASTParserFixture, bool_literal1) {
 
 UTEST_F(ASTParserFixture, bool_literal2) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, place1) {
     const char* source = "a";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_PLACE(node, "a");
 
@@ -680,18 +731,20 @@ UTEST_F(ASTParserFixture, place1) {
 
 UTEST_F(ASTParserFixture, place2) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, unary1) {
     const char* source = "-10";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_UNARY_EXPR_NODE);
@@ -707,9 +760,10 @@ UTEST_F(ASTParserFixture, unary1) {
 
 UTEST_F(ASTParserFixture, unary2) {
     const char* source = "-a";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_UNARY_EXPR_NODE);
@@ -725,27 +779,30 @@ UTEST_F(ASTParserFixture, unary2) {
 
 UTEST_F(ASTParserFixture, unary3) {
     const char* source = "-";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, unary4) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, binary1) {
     const char* source = "5 - 6";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_BINARY_EXPR_NODE);
@@ -763,27 +820,30 @@ UTEST_F(ASTParserFixture, binary1) {
 
 UTEST_F(ASTParserFixture, binary2) {
     const char* source = "5 -";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, binary3) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, braces1) {
     const char* source = "(10)";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_BRACES_EXPR_NODE);
@@ -797,36 +857,40 @@ UTEST_F(ASTParserFixture, braces1) {
 
 UTEST_F(ASTParserFixture, braces2) {
     const char* source = "(10";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, braces3) {
     const char* source = "()";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, braces4) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, call1) {
     const char* source = "call()";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CALL_OR_INDEXER_EXPR_NODE);
@@ -842,9 +906,10 @@ UTEST_F(ASTParserFixture, call1) {
 
 UTEST_F(ASTParserFixture, call2) {
     const char* source = "call(a)";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CALL_OR_INDEXER_EXPR_NODE);
@@ -864,9 +929,10 @@ UTEST_F(ASTParserFixture, call2) {
 
 UTEST_F(ASTParserFixture, call3) {
     const char* source = "call(a, b)";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CALL_OR_INDEXER_EXPR_NODE);
@@ -888,9 +954,10 @@ UTEST_F(ASTParserFixture, call3) {
 
 UTEST_F(ASTParserFixture, call4) {
     const char* source = "call(a, b, c())";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CALL_OR_INDEXER_EXPR_NODE);
@@ -923,9 +990,10 @@ UTEST_F(ASTParserFixture, call4) {
 
 UTEST_F(ASTParserFixture, call5) {
     const char* source = "call(a(b, c))";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CALL_OR_INDEXER_EXPR_NODE);
@@ -958,36 +1026,40 @@ UTEST_F(ASTParserFixture, call5) {
 
 UTEST_F(ASTParserFixture, call6) {
     const char* source = "call(a, )";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, call7) {
     const char* source = "call(a";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, call8) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, ternary1) {
     const char* source = "a ? b : c";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_TERNARY_EXPR_NODE);
@@ -1005,9 +1077,10 @@ UTEST_F(ASTParserFixture, ternary1) {
 
 UTEST_F(ASTParserFixture, ternary2) {
     const char* source = "a ? b - c : -c";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_TERNARY_EXPR_NODE);
@@ -1043,9 +1116,10 @@ UTEST_F(ASTParserFixture, ternary2) {
 
 UTEST_F(ASTParserFixture, ternary3) {
     const char* source = "res = a > b ? a - b : b * a";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_BINARY_EXPR_NODE);
@@ -1102,36 +1176,40 @@ UTEST_F(ASTParserFixture, ternary3) {
 
 UTEST_F(ASTParserFixture, ternary4) {
     const char* source = "a ? b :";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, ternary5) {
     const char* source = "a ?  : c";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, ternary6) {
     const char* source = "a ? ";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
 
 UTEST_F(ASTParserFixture, ternary7) {
     const char* source = "";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
@@ -1141,9 +1219,10 @@ UTEST_F(ASTParserFixture, condition1) {
         "if true then\n"
         "end if\n"
         ;
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_condition_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_condition_stmt_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CONDITION_STMT_NODE);
@@ -1165,9 +1244,10 @@ UTEST_F(ASTParserFixture, condition2) {
         "   call();\n"
         "end if\n"
         ;
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_condition_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_condition_stmt_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CONDITION_STMT_NODE);
@@ -1207,9 +1287,10 @@ UTEST_F(ASTParserFixture, condition3) {
         "   call2();\n"
         "end if\n"
         ;
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_condition_stmt_node(&utest_fixture->parser);
+    ASTNode* node = ast_parser_parse_ast_condition_stmt_node(utest_fixture->parser);
 
     ASSERT_NE(node, NULL);
     ASSERT_EQ(node->kind, AST_CONDITION_STMT_NODE);
@@ -1259,9 +1340,10 @@ UTEST_F(ASTParserFixture, condition3) {
 UTEST_F(ASTParserFixture, condition4) {
     const char* source = "if true then"
         "end";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
@@ -1269,9 +1351,10 @@ UTEST_F(ASTParserFixture, condition4) {
 UTEST_F(ASTParserFixture, condition5) {
     const char* source = "if true "
         "end if";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
@@ -1279,9 +1362,10 @@ UTEST_F(ASTParserFixture, condition5) {
 UTEST_F(ASTParserFixture, condition6) {
     const char* source = "if then"
         "end if";
-    stream_set_source(&utest_fixture->ss, source);
+    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
+    lexer_set_source_stream(utest_fixture->lexer, utest_fixture->ss);
 
-    ASTNode* node = ast_parser_parse_ast_expression_node(&utest_fixture->parser, PREC_NONE);
+    ASTNode* node = ast_parser_parse_ast_expression_node(utest_fixture->parser, PREC_NONE);
 
     ASSERT_EQ(node, NULL);
 }
@@ -1292,9 +1376,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //        "   print(a);\n"
 //        "wend"
 //        ;
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_NE(node, NULL);
 //    ASSERT_EQ(node->kind, AST_WHILE_STMT_NODE);
@@ -1323,9 +1407,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //
 //UTEST_F(ASTParserFixture, while_stmt_invalid1) {
 //    const char* source = "";
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_EQ(node, NULL);
 //}
@@ -1336,9 +1420,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //        "   print(a);\n"
 //        ""
 //        ;
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_EQ(node, NULL);
 //}
@@ -1349,9 +1433,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //        "   print(a);\n"
 //        "loop until true"
 //        ;
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_do_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_do_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_NE(node, NULL);
 //    ASSERT_EQ(node->kind, AST_DO_WHILE_STMT_NODE);
@@ -1380,9 +1464,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //
 //UTEST_F(ASTParserFixture, do_while_stmt_invalid1) {
 //    const char* source = "";
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_EQ(node, NULL);
 //}
@@ -1392,9 +1476,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //        "do"
 //        ""
 //        ;
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_EQ(node, NULL);
 //}
@@ -1404,9 +1488,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //        "do\n"
 //        "loop"
 //        ;
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_EQ(node, NULL);
 //}
@@ -1416,18 +1500,18 @@ UTEST_F(ASTParserFixture, condition6) {
 //        "do\n"
 //        "loop true"
 //        ;
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_while_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_EQ(node, NULL);
 //}
 //
 //UTEST_F(ASTParserFixture, break_stmt_valid) {
 //    const char* source = "break";
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_break_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_break_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_NE(node, NULL);
 //    ASSERT_EQ(node->kind, AST_BREAK_STMT_NODE);
@@ -1437,9 +1521,9 @@ UTEST_F(ASTParserFixture, condition6) {
 //
 //UTEST_F(ASTParserFixture, continue_stmt_valid) {
 //    const char* source = "continue";
-//    stream_set_source(&utest_fixture->ss, source);
+//    stream_set_source(utest_fixture->ss, STREAM_STRING_SOURCE, source);
 //
-//    ASTNode* node = ast_parser_parse_ast_continue_stmt_node(&utest_fixture->parser);
+//    ASTNode* node = ast_parser_parse_ast_continue_stmt_node(utest_fixture->parser);
 //
 //    ASSERT_NE(node, NULL);
 //    ASSERT_EQ(node->kind, AST_CONTINUE_STMT_NODE);

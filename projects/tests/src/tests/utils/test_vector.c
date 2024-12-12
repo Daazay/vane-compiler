@@ -13,7 +13,7 @@ UTEST_F_SETUP(Vecu8Fixture) {
     ASSERT_EQ(utest_fixture->vec.capacity, DEFAULT_VECTOR_CAPACITY);
     ASSERT_EQ(utest_fixture->vec.items_count, 0);
     ASSERT_EQ(utest_fixture->vec.item_size, sizeof(u8));
-    ASSERT_EQ(utest_fixture->vec.item_free, NULL);
+    ASSERT_EQ(utest_fixture->vec.free, NULL);
     ASSERT_EQ(utest_fixture->vec.is_ptr, false);
 }
 
@@ -111,7 +111,7 @@ UTEST_F_SETUP(VecObjFixture) {
     ASSERT_EQ(utest_fixture->vec.capacity, DEFAULT_VECTOR_CAPACITY);
     ASSERT_EQ(utest_fixture->vec.items_count, 0);
     ASSERT_EQ(utest_fixture->vec.item_size, sizeof(struct Obj*));
-    ASSERT_EQ(utest_fixture->vec.item_free, &obj_free);
+    ASSERT_EQ(utest_fixture->vec.free, &obj_free);
     ASSERT_EQ(utest_fixture->vec.is_ptr, true);
 }
 
